@@ -126,7 +126,20 @@ def _token_is_stale(claims, password_changed_at):
 # AUDIT LOG
 # ═══════════
 def audit_log(action):
+    """
+    Decorator that records a 'request entered' marker in the audit log.
 
+    Delegates to `record_audit()` in the audit routes module, which
+    uses its OWN connection (not the request-scoped one). This
+    guarantees the audit write cannot accidentally commit a parent
+    transaction.
+
+    NOTE: Routes that use this decorator AND call `record_audit()`
+    directly will produce two rows per action. The decorator logs
+    "the request happened", the route logs "what actually resulted".
+    To remove double rows, delete this decorator from a route and
+    rely solely on `record_audit()`.
+    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -144,17 +157,18 @@ def audit_log(action):
                 )
 
                 try:
-                    db = get_db()
-                    cursor = db.cursor()
-                    cursor.execute(
-                        """INSERT INTO audit_logs
-                           (user_id, action, details, ip_address, timestamp)
-                           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)""",
-                        (user_id, action,
-                         f"{request.method} {request.path} [{user_agent}]",
-                         ip_address)
+                    from backend.api.v1.routes.audit import record_audit
+                    record_audit(
+                        action=action,
+                        category='system',
+                        user_id=user_id,
+                        details=(
+                            f"{request.method} {request.path} "
+                            f"[{user_agent}]"
+                        ),
+                        result='success',
+                        ip_address=ip_address,
                     )
-                    db.commit()
                 except Exception as e:
                     logger.warning(f"Failed to log audit: {e}")
 
@@ -325,10 +339,20 @@ _TIME_WINDOW_SECONDS = {
 
 
 def _rate_limiting_disabled() -> bool:
-    if os.getenv("APP_ENV") == "testing":
-        return True
+    """
+    Return True only if rate limiting is explicitly disabled.
+
+    Priority:
+      1. Flask config RATELIMIT_ENABLED (the intended control).
+      2. Falls back to True (rate limiting enabled) if config
+         is unavailable.
+
+    NOTE: `APP_ENV=testing` no longer disables rate limiting by
+    itself. Tests set `RATELIMIT_ENABLED=False` via Flask config
+    or `os.environ` explicitly.
+    """
     try:
-        if not current_app.config.get("RATELIMIT_ENABLED", True):
+        if current_app and not current_app.config.get("RATELIMIT_ENABLED", True):
             return True
     except Exception:
         pass

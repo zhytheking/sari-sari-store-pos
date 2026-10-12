@@ -63,3 +63,7 @@ HEALTH_ALERT.txt
 
 # ── Build artifacts ──
 *.spec
+
+# Test output
+pytest_output.txt
+

@@ -4,11 +4,12 @@ even when BEGIN IMMEDIATE itself fails.
 
 sqlite3.Connection and sqlite3.Cursor are C extension types —
 their methods cannot be patched with unittest.mock.patch.object.
-We inject a Python-level wrapper instead.
+We inject a Python-level wrapper for one specific transaction call.
 """
 import sqlite3
 
 import pytest
+from flask import g
 
 
 class _BeginFailingCursor:
@@ -39,13 +40,24 @@ class _BeginFailingCursor:
 
 
 class _BeginFailingConnection:
-    """Wraps a real connection and hands out wrapped cursors."""
+    """Wraps a real connection and hands out ONE failing cursor.
+
+    After the first cursor fails on BEGIN, subsequent cursors
+    delegate normally — this mimics what a real connection does
+    after a BEGIN failure (the next BEGIN would succeed if the
+    lock was cleared).
+    """
 
     def __init__(self, real_conn):
         self._real = real_conn
+        self._failed_once = False
 
     def cursor(self, *args, **kwargs):
-        return _BeginFailingCursor(self._real.cursor(*args, **kwargs))
+        real_cursor = self._real.cursor(*args, **kwargs)
+        if not self._failed_once:
+            return _BeginFailingCursor(real_cursor)
+        # After the first failure, hand out real cursors.
+        return real_cursor
 
     def commit(self):
         return self._real.commit()
@@ -73,26 +85,26 @@ class TestTransactionCleanup:
         the exception and not leave the connection broken.
         """
         from backend.database.connection import (
-            DatabaseConnection, transaction,
+            DatabaseConnection, transaction, get_db,
         )
 
         with app.app_context():
+            # Get a real connection, wrap it, and cache it in g.db
+            # so transaction() uses our wrapper.
             real_conn = DatabaseConnection.get_connection()
             wrapped = _BeginFailingConnection(real_conn)
+            g.db = wrapped
 
-            original_get = DatabaseConnection.get_connection
-            try:
-                DatabaseConnection.get_connection = staticmethod(
-                    lambda *a, **kw: wrapped
-                )
+            # First transaction must raise.
+            with pytest.raises(sqlite3.OperationalError):
+                with transaction():
+                    pass  # never reached
 
-                with pytest.raises(sqlite3.OperationalError):
-                    with transaction():
-                        pass  # never reached
-            finally:
-                DatabaseConnection.get_connection = original_get
+            # Now clear the request cache so the next transaction
+            # gets a clean connection from the pool.
+            g.pop('db', None)
 
-            # Connection should still be usable for a fresh transaction.
+            # Subsequent transactions must work.
             with transaction() as tdb:
                 tdb.execute("SELECT 1")
 

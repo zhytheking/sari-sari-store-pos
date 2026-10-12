@@ -1,9 +1,12 @@
-
 #Sale schemas for request validation and response serialization.
 
-from marshmallow import Schema, fields, validate, ValidationError, post_load
+from marshmallow import (
+    Schema, fields, validate, ValidationError, post_load, EXCLUDE,
+)
+
 
 class SaleItemSchema(Schema):
+    """Output schema for a single sale line item."""
     id = fields.Int()
     product_id = fields.Int()
     product_name = fields.Str()
@@ -14,12 +17,25 @@ class SaleItemSchema(Schema):
 
 
 class SaleItemCreateSchema(Schema):
+    """
+    Input schema for a single sale line item.
+
+    `selling_price` is accepted for backward compatibility but
+    IGNORED. The server determines the actual price from the
+    products table to prevent price spoofing.
+
+    `unknown = EXCLUDE` means extra fields (like selling_price)
+    are silently dropped instead of causing a validation error.
+    """
+    class Meta:
+        unknown = EXCLUDE
+
     product_id = fields.Int(required=True)
     quantity = fields.Int(required=True, validate=validate.Range(min=1))
-    selling_price = fields.Decimal(required=True, validate=validate.Range(min=0))
 
 
 class SaleSchema(Schema):
+    """Output schema for a complete sale."""
     id = fields.Int()
     invoice_number = fields.Str()
     customer_name = fields.Str(allow_none=True)
@@ -43,6 +59,17 @@ class SaleSchema(Schema):
 
 
 class SaleCreateSchema(Schema):
+    """
+    Input schema for creating a sale.
+
+    Price validation is deferred to the route, which computes
+    totals from server-side product prices (not client input).
+
+    `unknown = EXCLUDE` means extra fields are dropped silently.
+    """
+    class Meta:
+        unknown = EXCLUDE
+
     items = fields.List(
         fields.Nested(SaleItemCreateSchema),
         required=True,
@@ -60,17 +87,11 @@ class SaleCreateSchema(Schema):
 
     @post_load
     def validate_payment(self, data, **kwargs):
-        total = sum(item['quantity'] * item['selling_price'] for item in data['items'])
+        """Validate input that does NOT depend on server-side prices."""
         discount = data.get('discount', 0)
-        final_amount = total - discount
-        if final_amount < 0:
-            raise ValidationError("Discount cannot exceed total amount")
-        if data['payment_amount'] < final_amount:
-            raise ValidationError(
-                f"Payment amount must be greater than or equal to total amount (₱{final_amount})"
-            )
+        if discount < 0:
+            raise ValidationError("Discount cannot be negative")
 
-        #GCash requires a 3-digit reference number
         method = data.get('payment_method')
         ref = (data.get('payment_reference') or '').strip()
 
@@ -89,7 +110,6 @@ class SaleCreateSchema(Schema):
                 )
             data['payment_reference'] = ref
         else:
-            #Cash: no reference
             data['payment_reference'] = None
 
         return data

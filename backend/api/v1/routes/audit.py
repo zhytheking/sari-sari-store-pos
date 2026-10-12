@@ -7,10 +7,10 @@ and via direct insert calls in login/logout flows.
 """
 from datetime import datetime, timedelta
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, has_request_context
 from flask_jwt_extended import jwt_required
 
-from database.connection import get_db
+from database.connection import get_db, DatabaseConnection
 from utils.decorators import role_required
 from utils.logger import get_logger
 
@@ -236,11 +236,9 @@ def get_summary():
         week = _count_since(week_ago)
         month = _count_since(month_ago)
 
-        # Totals
         cursor.execute("SELECT COUNT(*) FROM audit_logs")
         grand_total = cursor.fetchone()[0]
 
-        # Recent failure count (last 24h)
         cursor.execute(
             """SELECT COUNT(*) FROM audit_logs
                WHERE timestamp >= ? AND result = 'failure'""",
@@ -273,6 +271,17 @@ def get_summary():
 #
 # Not a route. Used by other modules (e.g. auth.login) when the
 # decorator is not applicable.
+#
+# Design notes:
+#   - Inside a request context: uses the request-scoped connection
+#     (via get_db()). The audit row participates in any enclosing
+#     transaction and commits/rolls back with it.
+#   - Outside a request: opens its own short-lived connection.
+#   - SQLite allows only ONE writer at a time. If we opened a
+#     second connection while a parent transaction held the write
+#     lock, SQLite would block for busy_timeout then fail. Using
+#     the same connection is the only correct approach for SQLite.
+#   - This never raises. If the insert fails, it logs a warning.
 
 def record_audit(
     action: str,
@@ -286,40 +295,65 @@ def record_audit(
     ip_address: str = None,
 ):
     """
-    Insert an audit log row directly.
+    Insert an audit log row.
 
-    This never raises. If the insert fails, it logs a warning and
-    continues. The caller is not interrupted.
+    See module-level notes for design rationale.
     """
     import json
 
+    sql = """
+        INSERT INTO audit_logs
+            (user_id, action, category, details,
+             target_type, target_id, result, metadata,
+             ip_address, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    """
+    payload = (
+        user_id,
+        action,
+        category,
+        details,
+        target_type,
+        target_id,
+        result,
+        json.dumps(metadata) if metadata else None,
+        ip_address,
+    )
+
+    if has_request_context():
+        # Use the request-scoped connection so the row is part of
+        # any enclosing transaction.
+        try:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute(sql, payload)
+            # NOTE: do not commit here. The connection is in
+            # autocommit mode (isolation_level=None), so the INSERT
+            # is durable immediately UNLESS it is inside an explicit
+            # BEGIN. Inside `with transaction()`, the transaction
+            # context manager handles commit/rollback.
+        except Exception as e:
+            logger.warning(f"record_audit failed: {e}")
+        return
+
+    # No request context — use our own connection.
+    conn = None
     try:
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            """
-            INSERT INTO audit_logs
-                (user_id, action, category, details,
-                 target_type, target_id, result, metadata, ip_address,
-                 timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """,
-            (
-                user_id,
-                action,
-                category,
-                details,
-                target_type,
-                target_id,
-                result,
-                json.dumps(metadata) if metadata else None,
-                ip_address,
-            )
-        )
-        db.commit()
+        conn = DatabaseConnection.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, payload)
+        conn.commit()
     except Exception as e:
         logger.warning(f"record_audit failed: {e}")
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+    finally:
+        if conn is not None:
+            DatabaseConnection.return_connection(conn)
 
 
 # Alias for older code paths
-record = record_audit  
+record = record_audit

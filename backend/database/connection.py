@@ -1,4 +1,3 @@
-
 #Database connection with pooling support.
 #Transaction model:
 #Request scope:
@@ -147,7 +146,7 @@ def init_db():
 
     db = get_db()
     cursor = db.cursor()
-    
+
     cursor.execute(
         "SELECT name FROM sqlite_master "
         "WHERE type='table' AND name='users'"
@@ -222,19 +221,53 @@ def init_db():
 
 @contextmanager
 def transaction():
+    """
+    Atomic transaction context manager.
 
+    Guarantees:
+      - BEGIN IMMEDIATE is executed before any writes.
+      - On any failure (including BEGIN failure), rollback is attempted.
+      - The connection is returned to the pool in a clean state.
+      - If rollback itself fails, the connection is closed rather than
+        reused in a broken state.
+    """
     db = get_db()
+    began = False
+
     try:
         cursor = db.cursor()
         cursor.execute("BEGIN IMMEDIATE")
+        began = True
+
         try:
             yield db
             db.commit()
         except Exception:
-            db.rollback()
+            # Rollback the transaction. If rollback itself fails,
+            # close the connection so it can't poison the pool.
+            try:
+                db.rollback()
+            except Exception:
+                try:
+                    db.close()
+                except Exception:
+                    pass
             raise
-    finally:
 
+    except Exception:
+        # BEGIN itself failed, or something outside the inner try.
+        # Only roll back if BEGIN actually started.
+        if began:
+            try:
+                db.rollback()
+            except Exception:
+                try:
+                    db.close()
+                except Exception:
+                    pass
+        raise
+
+    finally:
         if not has_request_context():
             DatabaseConnection.return_connection(db)
 

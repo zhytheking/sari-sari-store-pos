@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.audit-wrapper {
+    padding: 30px 0 50px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 300px);
+}
+
+.audit-header {
+    background: linear-gradient(135deg, #0c1a12 0%, #1b4332 40%, #2d6a4f 100%);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(27, 67, 50, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.audit-header::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.audit-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.audit-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.audit-header h1 i { color: #ffb703; margin-right: 10px; }
+.audit-header p { color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px 22px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    border-left: 4px solid #2d6a4f;
+}
+
+.stat-card.auth { border-left-color: #0d6efd; }
+.stat-card.sale { border-left-color: #198754; }
+.stat-card.stock { border-left-color: #e37400; }
+.stat-card.failure { border-left-color: #dc3545; }
+
+.stat-card .stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.2;
+}
+
+.filters-bar {
+    background: white;
+    padding: 18px 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.filters-bar label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1a1a2e;
+}
+
+.filters-bar input[type="date"],
+.filters-bar input[type="text"],
+.filters-bar select {
+    padding: 8px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.filters-bar input:focus,
+.filters-bar select:focus {
+    border-color: #2d6a4f;
+    outline: none;
+}
+
+.filters-bar .btn {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.filters-bar .btn-primary { background: #2d6a4f; color: white; }
+.filters-bar .btn-primary:hover { background: #1b4332; }
+.filters-bar .btn-secondary { background: #e9ecef; color: #6c757d; }
+.filters-bar .btn-secondary:hover { background: #dee2e6; }
+
+.table-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    overflow-x: auto;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.audit-table thead th {
+    text-align: left;
+    padding: 12px 14px;
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+}
+
+.audit-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f3f5;
+    color: #1a1a2e;
+    vertical-align: top;
+}
+
+.audit-table tbody tr:hover td { background: #fafbfc; }
+
+.audit-table .category-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-badge.auth { background: #dbeafe; color: #1e40af; }
+.category-badge.sale { background: #d1fae5; color: #065f46; }
+.category-badge.stock { background: #fef3c7; color: #92400e; }
+.category-badge.product { background: #e0e7ff; color: #3730a3; }
+.category-badge.user { background: #fce7f3; color: #9f1239; }
+.category-badge.settings { background: #f3e8ff; color: #6b21a8; }
+.category-badge.system { background: #f1f3f5; color: #495057; }
+
+.result-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.result-badge.success { background: #d1fae5; color: #065f46; }
+.result-badge.failure { background: #fee2e2; color: #991b1b; }
+
+.user-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-cell .username {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.user-cell .role {
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-cell {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #2d6a4f;
+}
+
+.details-cell {
+    max-width: 400px;
+    word-wrap: break-word;
+    color: #495057;
+}
+
+.time-cell {
+    white-space: nowrap;
+    font-size: 0.78rem;
+    color: #6c757d;
+}
+
+.ip-cell {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: #adb5bd;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pagination-info { font-size: 0.85rem; color: #6c757d; }
+.pagination-controls { display: flex; gap: 6px; }
+
+.pagination-controls button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #e9ecef;
+    background: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #495057;
+    font-family: inherit;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    border-color: #2d6a4f;
+    color: #2d6a4f;
+}
+
+.pagination-controls button.active {
+    background: #2d6a4f;
+    color: white;
+    border-color: #2d6a4f;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.loading-state { text-align: center; padding: 60px 20px; }
+.loading-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid #e9ecef;
+    border-top-color: #2d6a4f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-state i {
+    font-size: 4rem; color: #dee2e6;
+    margin-bottom: 20px;
+}
+.empty-state h3 { color: #1a1a2e; margin-bottom: 8px; }
+.empty-state p { color: #6c757d; }
+
+@media (max-width: 768px) {
+    .audit-header { padding: 20px; }
+    .audit-header h1 { font-size: 1.4rem; }
+    .filters-bar { flex-direction: column; align-items: stretch; }
+    .filters-bar input,
+    .filters-bar select { width: 100%; }
+    .audit-table { font-size: 0.75rem; }
+    .audit-table thead th,
+    .audit-table tbody td { padding: 8px 10px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="audit-wrapper">
+    <div class="audit-header">
+        <div class="header-content">
+            <div>
+                <h1><i class="fas fa-history"></i> Audit Log</h1>
+                <p>Every login, sale, and stock change tracked</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card auth">
+            <div class="stat-label">Auth Events (24h)</div>
+            <div class="stat-value" id="statAuth">0</div>
+        </div>
+        <div class="stat-card sale">
+            <div class="stat-label">Sales Events (24h)</div>
+            <div class="stat-value" id="statSales">0</div>
+        </div>
+        <div class="stat-card stock">
+            <div class="stat-label">Stock Events (24h)</div>
+            <div class="stat-value" id="statStock">0</div>
+        </div>
+        <div class="stat-card failure">
+            <div class="stat-label">Failures (24h)</div>
+            <div class="stat-value" id="statFailures">0</div>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <label>From:</label>
+        <input type="date" id="filterStartDate">
+
+        <label>To:</label>
+        <input type="date" id="filterEndDate">
+
+        <label>Category:</label>
+        <select id="filterCategory">
+            <option value="">All</option>
+            <option value="auth">Auth</option>
+            <option value="sale">Sales</option>
+            <option value="stock">Stock</option>
+            <option value="product">Product</option>
+            <option value="user">User</option>
+            <option value="settings">Settings</option>
+            <option value="system">System</option>
+        </select>
+
+        <label>Result:</label>
+        <select id="filterResult">
+            <option value="">All</option>
+            <option value="success">Success</option>
+            <option value="failure">Failure</option>
+        </select>
+
+        <label>Search:</label>
+        <input type="text" id="filterSearch" placeholder="Action, details, username...">
+
+        <button class="btn btn-primary" onclick="applyFilters()">
+            <i class="fas fa-filter"></i> Apply
+        </button>
+
+        <button class="btn btn-secondary" onclick="resetFilters()">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <div id="auditTableContainer">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading audit log...</p>
+            </div>
+        </div>
+
+        <div class="pagination-wrapper" id="paginationWrapper" style="display:none;">
+            <div class="pagination-info" id="paginationInfo"></div>
+            <div class="pagination-controls" id="paginationControls"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/audit.js') }}"></script>
+{% endblock %}

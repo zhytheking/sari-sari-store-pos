@@ -1,0 +1,1180 @@
+{% extends "base.html" %}
+
+{% block title %}Point of Sale - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.pos-wrapper {
+    padding: 20px 0 40px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.pos-container {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    height: calc(100vh - 240px);
+    min-height: 500px;
+}
+
+.pos-products {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.02);
+}
+
+.pos-products .pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f3f5;
+}
+
+.pos-products .pos-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pos-products .pos-header h3 i { color: #2d6a4f; }
+
+.pos-products .pos-header .badge {
+    background: #e9ecef;
+    color: #6c757d;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: #e6f4ea;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #1e8e3e;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 10px;
+}
+
+.live-indicator .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #1e8e3e;
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.pos-action-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 18px;
+}
+
+.pos-search-box {
+    position: relative;
+    flex: 0 0 240px;
+    min-width: 180px;
+}
+
+.pos-search-box .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+    font-size: 0.85rem;
+}
+
+.pos-search-box input {
+    width: 100%;
+    height: 100%;
+    padding: 14px 34px 14px 36px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background: #fafafa;
+}
+
+.pos-search-box input:focus {
+    border-color: #2d6a4f;
+    outline: none;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.08);
+}
+
+.pos-search-box .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 6px;
+    font-size: 0.8rem;
+    display: none;
+    border-radius: 50%;
+}
+
+.pos-search-box .search-clear:hover { color: #dc3545; background: #fee2e2; }
+.pos-search-box .search-clear.visible { display: block; }
+
+.scan-barcode-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.25);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.scan-barcode-btn:hover {
+    background: linear-gradient(135deg, #0c1a12, #1b4332);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(45, 106, 79, 0.4);
+}
+
+.scan-barcode-btn i { font-size: 1.2rem; }
+
+.pos-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    color: #495057;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.pos-refresh-btn:hover:not(:disabled) {
+    background: #2d6a4f;
+    color: white;
+    border-color: #2d6a4f;
+}
+
+.pos-refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.search-hint {
+    display: none;
+    padding: 8px 14px;
+    background: #f0fdf4;
+    border-left: 3px solid #2d6a4f;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: #2d6a4f;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.search-hint.visible {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.search-hint .hint-clear {
+    background: none;
+    border: none;
+    color: #2d6a4f;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.78rem;
+    text-decoration: underline;
+    padding: 0;
+    font-family: inherit;
+}
+
+.pos-empty-banner {
+    display: none;
+    padding: 16px 20px;
+    background: #fef3c7;
+    border-left: 4px solid #e37400;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    color: #92400e;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.pos-empty-banner.visible { display: block; }
+
+.pos-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.pos-product-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.pos-product-item:hover:not(.out-of-stock):not(.inactive) {
+    border-color: #2d6a4f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+
+.pos-product-item .item-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #1a1a2e;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pos-product-item .item-price {
+    font-weight: 700;
+    color: #2d6a4f;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.pos-product-item .item-stock {
+    font-size: 0.65rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.pos-product-item.out-of-stock {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #f1f3f5;
+}
+
+.pos-product-item.out-of-stock .item-name { text-decoration: line-through; color: #6c757d; }
+.pos-product-item.out-of-stock .item-price { color: #adb5bd; }
+.pos-product-item.out-of-stock .item-stock { color: #dc3545; font-weight: 700; }
+
+.pos-product-item.inactive {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.pos-product-item.inactive::before {
+    content: 'INACTIVE';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #dc3545;
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.pos-cart {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.02);
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.pos-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.pos-cart-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pos-cart-header h3 i { color: #2d6a4f; }
+
+.pos-cart-header .badge {
+    background: #2d6a4f;
+    color: white;
+    padding: 3px 14px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.pos-cart-items {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.pos-cart-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.pos-cart-item .item-info { flex: 1; min-width: 0; }
+
+.pos-cart-item .item-name {
+    font-weight: 500;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #1a1a2e;
+}
+
+.pos-cart-item .item-price { color: #6c757d; font-size: 0.7rem; margin-top: 2px; }
+
+.pos-cart-item .item-actions { display: flex; align-items: center; gap: 4px; }
+
+.pos-cart-item .item-actions button {
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pos-cart-item .item-actions .qty-btn { background: #2d6a4f; color: white; }
+.pos-cart-item .item-actions .qty-btn:hover:not(:disabled) { background: #1b4332; }
+.pos-cart-item .item-actions .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pos-cart-item .item-actions .remove-btn { background: #dc3545; color: white; }
+.pos-cart-item .item-actions .remove-btn:hover { background: #b02a37; }
+
+.pos-cart-item .item-qty {
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.pos-cart-item .item-total {
+    font-weight: 700;
+    min-width: 60px;
+    text-align: right;
+    font-size: 0.85rem;
+    color: #2d6a4f;
+}
+
+.pos-cart-summary {
+    border-top: 2px solid #e9ecef;
+    padding-top: 12px;
+    flex-shrink: 0;
+}
+
+.pos-cart-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.pos-cart-summary .summary-row.total {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1a1a2e;
+    border-top: 2px solid #2d6a4f;
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+.pos-cart-summary .summary-row.total span:last-child { color: #2d6a4f; }
+
+.pos-cart-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-shrink: 0;
+}
+
+.pos-cart-actions .btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.pos-cart-actions .btn-clear { background: #e9ecef; color: #6c757d; }
+.pos-cart-actions .btn-clear:hover { background: #dee2e6; }
+.pos-cart-actions .btn-pay { background: #2d6a4f; color: white; }
+.pos-cart-actions .btn-pay:hover { background: #1b4332; }
+
+.empty-cart { text-align: center; color: #6c757d; padding: 40px 0; }
+.empty-cart i { font-size: 2.5rem; display: block; margin-bottom: 10px; color: #dee2e6; }
+
+/* Modals */
+.barcode-entry-modal,
+.register-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.barcode-entry-modal.active,
+.register-modal.active { display: flex; }
+
+.barcode-entry-content,
+.register-modal-content {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+}
+
+.barcode-entry-content h2,
+.register-modal-content h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1b4332;
+}
+
+.barcode-entry-content .helper {
+    color: #6c757d;
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+.scan-tabs {
+    display: flex;
+    gap: 6px;
+    background: #f1f3f5;
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+
+.scan-tab {
+    flex: 1;
+    padding: 9px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.scan-tab.active {
+    background: white;
+    color: #2d6a4f;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.scan-panel { display: none; }
+.scan-panel.active { display: block; }
+
+.barcode-entry-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 3px solid #2d6a4f;
+    border-radius: 12px;
+    font-size: 1.4rem;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    letter-spacing: 3px;
+    font-weight: 700;
+    background: #f0fdf4;
+    color: #1b4332;
+    transition: all 0.2s ease;
+}
+
+.barcode-entry-input:focus {
+    outline: none;
+    border-color: #198754;
+    background: #fff;
+    box-shadow: 0 0 0 5px rgba(45, 106, 79, 0.15);
+}
+
+.barcode-entry-input.error {
+    border-color: #dc3545;
+    background: #fef2f2;
+}
+
+.camera-wrapper {
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #dee2e6;
+    gap: 10px;
+    text-align: center;
+    padding: 20px;
+}
+
+.camera-placeholder i { font-size: 3rem; color: #495057; }
+.camera-placeholder p {
+    font-size: 0.85rem;
+    color: #adb5bd;
+    margin: 0;
+    max-width: 240px;
+    line-height: 1.5;
+}
+
+.camera-crosshair {
+    position: absolute;
+    inset: 15%;
+    border: 3px dashed rgba(255,255,255,0.7);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.camera-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.camera-controls .btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.camera-controls .btn-start { background: #2d6a4f; color: white; }
+.camera-controls .btn-stop { background: #dc3545; color: white; }
+
+.scan-status-line {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    text-align: center;
+    color: #6c757d;
+    min-height: 18px;
+    font-weight: 500;
+}
+
+.scan-status-line.success { color: #198754; font-weight: 600; }
+.scan-status-line.error { color: #dc3545; font-weight: 600; }
+
+.barcode-entry-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.barcode-entry-actions .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.barcode-entry-actions .btn-confirm { background: #2d6a4f; color: white; }
+.barcode-entry-actions .btn-cancel { background: #e9ecef; color: #495057; }
+
+.register-modal-content .total-display {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2d6a4f;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.payment-method-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.payment-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 12px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.payment-method-btn:hover { border-color: #2d6a4f; background: white; }
+.payment-method-btn.active {
+    border-color: #2d6a4f;
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    color: #2d6a4f;
+}
+
+.payment-method-btn i { font-size: 1.6rem; }
+
+.gcash-section { display: none; }
+.gcash-section.active { display: block; }
+
+.qr-container {
+    background: white;
+    border: 3px solid #007bff;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.qr-container::before {
+    content: 'GCash';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #007bff;
+    color: white;
+    padding: 2px 16px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.qr-image-wrapper {
+    display: inline-block;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.qr-image { width: 200px; height: 200px; object-fit: contain; display: block; }
+
+.qr-placeholder {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    color: #6c757d;
+    gap: 8px;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+}
+
+.qr-placeholder i { font-size: 2.5rem; color: #adb5bd; }
+.qr-placeholder p { font-size: 0.75rem; margin: 0; max-width: 180px; }
+
+.ref-input-group {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 2px dashed #7dd3fc;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.ref-input-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0369a1;
+    margin-bottom: 8px;
+}
+
+.ref-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #7dd3fc;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    text-align: center;
+    letter-spacing: 8px;
+    font-weight: 700;
+    background: white;
+    color: #0369a1;
+}
+
+.amount-input-group { margin-bottom: 12px; }
+
+.amount-input-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.amount-input-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d6a4f;
+}
+
+.form-group { margin-bottom: 15px; }
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.register-modal-content .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.register-modal-content .modal-actions .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.register-modal-content .modal-actions .btn-pay { background: #2d6a4f; color: #fff; }
+.register-modal-content .modal-actions .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; }
+.register-modal-content .modal-actions .btn-clear { background: #e9ecef; color: #495057; }
+
+@media (max-width: 1024px) {
+    .pos-container { grid-template-columns: 1fr; height: auto; }
+    .pos-cart { max-height: 500px; }
+}
+
+@media (max-width: 768px) {
+    .pos-action-row { flex-wrap: wrap; }
+    .pos-search-box { flex: 1 1 100%; }
+    .scan-barcode-btn { flex: 1; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pos-wrapper">
+    <div class="pos-container">
+        <div class="pos-products">
+            <div class="pos-header">
+                <h3>
+                    <i class="fas fa-box"></i> Products
+                    <span class="live-indicator" id="liveIndicator">
+                        <span class="dot"></span> Live
+                    </span>
+                </h3>
+                <span class="badge" id="productCount">0 available</span>
+            </div>
+
+            <div class="pos-action-row">
+                <div class="pos-search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="posSearch"
+                           placeholder="Search name or barcode..."
+                           autocomplete="off">
+                    <button type="button" class="search-clear" id="posSearchClear"
+                            onclick="clearPosSearch()" title="Clear">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn"
+                        title="Scan Barcode (F2)">
+                    <i class="fas fa-barcode"></i>
+                    <span>Scan Barcode</span>
+                </button>
+
+                <button type="button" id="refreshProductsBtn"
+                        class="pos-refresh-btn" title="Refresh products">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+
+            <div class="pos-empty-banner" id="emptyBanner">
+                <strong>⚠️ No products in the system.</strong>
+                <span>Ask the owner to add products in the
+                    <a href="/admin/stocks">Stocks</a> page.</span>
+            </div>
+
+            <div class="search-hint" id="searchHint">
+                <span class="hint-text" id="searchHintText">
+                    <i class="fas fa-filter"></i> Filtering...
+                </span>
+                <button type="button" class="hint-clear"
+                        onclick="clearPosSearch()">Clear filter</button>
+            </div>
+
+            <div class="pos-product-grid" id="posProductGrid">
+                <div style="grid-column:1/-1;padding:40px 20px;text-align:center;">
+                    <div class="loading-spinner" style="margin:0 auto;"></div>
+                    <p style="margin-top:10px;color:#6c757d;">
+                        Loading products...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pos-cart">
+            <div class="pos-cart-header">
+                <h3><i class="fas fa-shopping-cart"></i> Current Order</h3>
+                <span class="badge" id="cartItemCount">0 items</span>
+            </div>
+            <div class="pos-cart-items" id="posCartItems">
+                <div class="empty-cart">
+                    <i class="fas fa-cart-plus"></i>
+                    <p>Add items to start order</p>
+                </div>
+            </div>
+            <div class="pos-cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="posSubtotal">₱0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Discount</span>
+                    <span id="posDiscount">₱0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="posTotal">₱0.00</span>
+                </div>
+            </div>
+            <div class="pos-cart-actions">
+                <button class="btn btn-clear" onclick="clearPosCart()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+                <button class="btn btn-pay" onclick="openPaymentModal()">
+                    <i class="fas fa-check"></i> Pay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     BARCODE ENTRY MODAL
+     ============================================ -->
+<div class="barcode-entry-modal" id="barcodeEntryModal">
+    <div class="barcode-entry-content">
+        <h2><i class="fas fa-barcode"></i> Scan Barcode</h2>
+        <p class="helper">
+            Use a USB scanner, type manually, or open your camera to scan.
+        </p>
+
+        <div class="scan-tabs">
+            <button type="button" class="scan-tab active" id="tabManual"
+                    onclick="switchScanTab('manual')">
+                <i class="fas fa-keyboard"></i> Manual / USB
+            </button>
+            <button type="button" class="scan-tab" id="tabCamera"
+                    onclick="switchScanTab('camera')">
+                <i class="fas fa-camera"></i> Camera
+            </button>
+        </div>
+
+        <div class="scan-panel active" id="panelManual">
+            <input type="text" id="barcodeEntryInput"
+                   class="barcode-entry-input"
+                   placeholder="||||||||" autocomplete="off"
+                   spellcheck="false" inputmode="numeric">
+            <div class="scan-status-line" id="manualStatus"></div>
+        </div>
+
+        <div class="scan-panel" id="panelCamera">
+            <div class="camera-wrapper">
+                <video id="cameraVideo" autoplay muted playsinline></video>
+                <div class="camera-placeholder" id="cameraPlaceholder">
+                    <i class="fas fa-camera"></i>
+                    <p>Click "Start Camera" to begin scanning with your
+                       device's camera.</p>
+                </div>
+                <div class="camera-crosshair" id="cameraCrosshair"
+                     style="display:none;"></div>
+            </div>
+            <div class="camera-controls">
+                <button type="button" class="btn btn-start" id="cameraStartBtn"
+                        onclick="startCamera()">
+                    <i class="fas fa-play"></i> Start Camera
+                </button>
+                <button type="button" class="btn btn-stop" id="cameraStopBtn"
+                        onclick="stopCamera()" style="display:none;">
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+            </div>
+            <div class="scan-status-line" id="cameraStatus"></div>
+        </div>
+
+        <div class="barcode-entry-actions">
+            <button type="button" class="btn btn-cancel"
+                    onclick="closeBarcodeEntry()">
+                <i class="fas fa-times"></i> Close
+            </button>
+            <button type="button" class="btn btn-confirm"
+                    onclick="submitBarcodeEntry()" id="barcodeConfirmBtn">
+                <i class="fas fa-check"></i> Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     PAYMENT MODAL
+     ============================================ -->
+<div class="register-modal" id="paymentModal">
+    <div class="register-modal-content">
+        <h2>💳 Process Payment</h2>
+        <div class="total-display" id="paymentTotal">₱0.00</div>
+
+        <div class="payment-method-buttons">
+            <button type="button" class="payment-method-btn active"
+                    id="pmCashBtn" onclick="selectPaymentMethod('cash')">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Cash</span>
+            </button>
+            <button type="button" class="payment-method-btn"
+                    id="pmGcashBtn" onclick="selectPaymentMethod('gcash')">
+                <i class="fas fa-mobile-alt"></i>
+                <span>GCash</span>
+            </button>
+        </div>
+
+        <div id="cashSection">
+            <div class="amount-input-group">
+                <label><i class="fas fa-hand-holding-usd"></i> Amount Received</label>
+                <input type="number" id="cashAmount" min="0" step="0.01"
+                       placeholder="Enter amount..."
+                       oninput="calculateChange()">
+            </div>
+            <div class="amount-input-group">
+                <label><i class="fas fa-coins"></i> Change</label>
+                <input type="text" id="cashChange" readonly value="₱0.00"
+                       style="background:#f8f9fa;">
+            </div>
+        </div>
+
+        <div id="gcashSection" class="gcash-section">
+            <div class="qr-container">
+                <div class="qr-image-wrapper">
+                    <img id="gcashQrImage" class="qr-image"
+                         alt="GCash QR Code" style="display:none;">
+                    <div id="gcashQrPlaceholder" class="qr-placeholder">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading QR code...</p>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:0.8rem;
+                            color:#495057;margin-top:12px;line-height:1.5;">
+                    <strong style="color:#007bff;">Scan this QR</strong>
+                    using your GCash app<br>
+                    to send <span id="qrAmountHint"
+                                  style="font-weight:700;color:#2d6a4f;">₱0.00</span>
+                </div>
+            </div>
+
+            <div class="ref-input-group">
+                <label><i class="fas fa-receipt"></i>
+                    Last 3 Digits of Reference No.</label>
+                <input type="text" id="gcashRef" class="ref-input" maxlength="3"
+                       placeholder="000" inputmode="numeric"
+                       oninput="validateRefInput(this)">
+                <small style="display:block;color:#0369a1;font-size:0.7rem;
+                              margin-top:6px;opacity:0.8;">
+                    Ask customer for the last 3 digits of their GCash receipt.
+                </small>
+            </div>
+
+            <div class="amount-input-group">
+                <label><i class="fas fa-money-bill-wave"></i> Amount Received</label>
+                <input type="number" id="gcashAmount" min="0" step="0.01"
+                       placeholder="Enter amount..."
+                       oninput="calculateGcashChange()">
+            </div>
+
+            <div class="amount-input-group">
+                <label><i class="fas fa-coins"></i> Change</label>
+                <input type="text" id="gcashChange" readonly value="₱0.00"
+                       style="background:#f8f9fa;">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:15px;">
+            <label>Customer Name (Optional)</label>
+            <input type="text" id="customerName"
+                   placeholder="Leave blank if not tracking">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-pay" onclick="submitPayment()"
+                    id="submitPaymentBtn">
+                ✅ Confirm Payment
+            </button>
+            <button class="btn btn-clear" onclick="closePaymentModal()">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+<script src="{{ url_for('static', filename='js/pos.js') }}"></script>
+{% endblock %}

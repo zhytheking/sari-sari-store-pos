@@ -1,0 +1,597 @@
+{% extends "base.html" %}
+
+{% block title %}Accounts - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.accounts-wrapper {
+    padding: 20px 0 40px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.accounts-header {
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(27, 67, 50, 0.2);
+}
+
+.accounts-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.accounts-header h1 i { color: #ffb703; }
+.accounts-header p { color: rgba(255,255,255,0.7); margin: 6px 0 0 0; }
+
+.accounts-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    align-items: center;
+}
+
+.accounts-actions .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+.accounts-actions .btn-primary { background: #2d6a4f; color: white; }
+.accounts-actions .btn-primary:hover { background: #1b4332; }
+.accounts-actions .btn-danger { background: #dc3545; color: white; }
+.accounts-actions .btn-danger:hover { background: #b02a37; }
+.accounts-actions .btn-warning { background: #ffc107; color: #1a1a2e; }
+.accounts-actions .btn-warning:hover { background: #e6a800; }
+.accounts-actions .btn-secondary { background: #e9ecef; color: #495057; }
+.accounts-actions .btn-secondary:hover { background: #dee2e6; }
+
+.accounts-actions .spacer { flex: 1; }
+
+.accounts-table-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    overflow-x: auto;
+}
+
+.accounts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.accounts-table th {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.accounts-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f3f5;
+    color: #1a1a2e;
+}
+
+.accounts-table tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.accounts-table tr:hover td { background: #fafbfc; }
+
+.accounts-table tr.selected td {
+    background: #e6f4ea;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.role-badge.owner { background: #fef3c7; color: #92400e; }
+.role-badge.cashier { background: #dbeafe; color: #1e40af; }
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.status-badge.active { background: #d4edda; color: #155724; }
+.status-badge.inactive { background: #f8d7da; color: #721c24; }
+
+.select-check {
+    color: #2d6a4f;
+    font-size: 1rem;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.empty-row i {
+    font-size: 2rem;
+    color: #dee2e6;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 460px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-content h2 i { color: #2d6a4f; }
+
+.modal-content .form-group { margin-bottom: 15px; }
+
+.modal-content .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.modal-content .form-group input:focus,
+.modal-content .form-group select:focus {
+    border-color: #2d6a4f;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.modal-content .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-content .modal-actions .btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.modal-content .modal-actions .btn-primary { background: #2d6a4f; color: white; }
+.modal-content .modal-actions .btn-secondary { background: #e9ecef; color: #495057; }
+.modal-content .modal-actions .btn-danger { background: #dc3545; color: white; }
+
+.modal-subtitle {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin: 0 0 16px 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="accounts-wrapper">
+    <div class="accounts-header">
+        <h1><i class="fas fa-users"></i> Accounts</h1>
+        <p>Manage cashier and owner accounts</p>
+    </div>
+
+    <div class="accounts-actions">
+        <button class="btn btn-primary" onclick="openAddUser()">
+            <i class="fas fa-plus"></i> Add User
+        </button>
+        <button class="btn btn-warning" onclick="openResetPassword()">
+            <i class="fas fa-key"></i> Reset Password
+        </button>
+        <button class="btn btn-danger" onclick="deleteSelected()">
+            <i class="fas fa-trash"></i> Delete
+        </button>
+        <div class="spacer"></div>
+        <button class="btn btn-secondary" onclick="loadUsers()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+
+    <div class="accounts-table-wrapper">
+        <table class="accounts-table">
+            <thead>
+                <tr>
+                    <th style="width:50px;"></th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <tr>
+                    <td colspan="6" class="empty-row">Loading users...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addUserModal">
+    <div class="modal-content">
+        <h2><i class="fas fa-user-plus"></i> Add New User</h2>
+        <form onsubmit="submitAddUser(event)">
+            <div class="form-group">
+                <label>Username *</label>
+                <input type="text" id="newUsername" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="newFullName" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="newPassword" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="newRole">
+                    <option value="cashier">Cashier</option>
+                    <option value="owner">Owner</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addUserModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="resetPasswordModal">
+    <div class="modal-content">
+        <h2><i class="fas fa-key"></i> Reset Password</h2>
+        <p class="modal-subtitle" id="resetUserLabel"></p>
+        <form onsubmit="submitResetPassword(event)">
+            <div class="form-group">
+                <label>New Password *</label>
+                <input type="password" id="resetNewPassword" required
+                       autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password *</label>
+                <input type="password" id="resetConfirmPassword" required
+                       autocomplete="new-password">
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-danger">Reset</button>
+                <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('resetPasswordModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const token = localStorage.getItem('access_token');
+let users = [];
+let selectedUserId = null;
+let resetTargetUserId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!token) {
+        showToast('Please login first', 'error');
+        setTimeout(() => window.location.href = '/login', 1500);
+        return;
+    }
+    loadUsers();
+});
+
+function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Loading users...</td></tr>';
+
+    fetch('/api/v1/auth/users?per_page=200', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            users = data.data.items || [];
+            renderUsers();
+        } else {
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-row" style="color:#dc3545;">${escapeHtml(data.message || 'Failed to load')}</td></tr>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-row" style="color:#dc3545;">Network error</td></tr>';
+    });
+}
+
+function renderUsers() {
+    const tbody = document.getElementById('usersTableBody');
+
+    if (!users.length) {
+        tbody.innerHTML = `
+            <tr><td colspan="6" class="empty-row">
+                <i class="fas fa-users"></i>
+                No users found
+            </td></tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    users.forEach(u => {
+        const isSelected = u.id === selectedUserId;
+        const roleClass = u.role === 'owner' ? 'owner' : 'cashier';
+        const statusClass = u.is_active ? 'active' : 'inactive';
+        const statusText = u.is_active ? 'Active' : 'Inactive';
+
+        html += `
+            <tr class="${isSelected ? 'selected' : ''}" onclick="selectUser(${u.id})">
+                <td style="text-align:center;">
+                    ${isSelected ? '<i class="fas fa-check-circle select-check"></i>' : ''}
+                </td>
+                <td>${u.id}</td>
+                <td><strong>${escapeHtml(u.username)}</strong></td>
+                <td>${escapeHtml(u.full_name || '—')}</td>
+                <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function selectUser(id) {
+    selectedUserId = (selectedUserId === id) ? null : id;
+    renderUsers();
+}
+
+function openAddUser() {
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newFullName').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('newRole').value = 'cashier';
+    document.getElementById('addUserModal').classList.add('active');
+    setTimeout(() => document.getElementById('newUsername').focus(), 100);
+}
+
+function submitAddUser(event) {
+    event.preventDefault();
+    const data = {
+        username: document.getElementById('newUsername').value.trim(),
+        full_name: document.getElementById('newFullName').value.trim(),
+        password: document.getElementById('newPassword').value,
+        role: document.getElementById('newRole').value,
+        email: null
+    };
+
+    if (!data.username || !data.full_name || !data.password) {
+        showToast('All required fields must be filled', 'error');
+        return;
+    }
+
+    fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            showToast('User created!', 'success');
+            closeModal('addUserModal');
+            loadUsers();
+        } else {
+            showToast(res.message || 'Failed', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Failed to create user', 'error');
+    });
+}
+
+function deleteSelected() {
+    if (!selectedUserId) {
+        showToast('Select a user first', 'warning');
+        return;
+    }
+
+    const user = users.find(u => u.id === selectedUserId);
+    if (!user) return;
+
+    if (!confirm(`Delete user "${user.username}"?`)) return;
+
+    fetch(`/api/v1/auth/users/${selectedUserId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            showToast('User deleted', 'success');
+            selectedUserId = null;
+            loadUsers();
+        } else {
+            showToast(res.message || 'Failed', 'error');
+        }
+    })
+    .catch(err => showToast('Failed', 'error'));
+}
+
+function openResetPassword() {
+    if (!selectedUserId) {
+        showToast('Select a user first', 'warning');
+        return;
+    }
+    const user = users.find(u => u.id === selectedUserId);
+    resetTargetUserId = selectedUserId;
+
+    document.getElementById('resetUserLabel').textContent =
+        `Resetting password for: ${user.username} (${user.full_name || 'no name'})`;
+    document.getElementById('resetNewPassword').value = '';
+    document.getElementById('resetConfirmPassword').value = '';
+    document.getElementById('resetPasswordModal').classList.add('active');
+    setTimeout(() => document.getElementById('resetNewPassword').focus(), 100);
+}
+
+function submitResetPassword(event) {
+    event.preventDefault();
+    const newPw = document.getElementById('resetNewPassword').value;
+    const confirm = document.getElementById('resetConfirmPassword').value;
+
+    if (!newPw || !confirm) {
+        showToast('Both fields required', 'error');
+        return;
+    }
+    if (newPw !== confirm) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+    if (newPw.length < 8) {
+        showToast('Password must be at least 8 characters', 'error');
+        return;
+    }
+
+    fetch(`/api/v1/auth/users/${resetTargetUserId}/reset-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ new_password: newPw })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            showToast(res.message || 'Password reset', 'success');
+            closeModal('resetPasswordModal');
+        } else {
+            showToast(res.message || 'Failed', 'error');
+        }
+    })
+    .catch(err => showToast('Failed', 'error'));
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(text).replace(/[&<>"']/g, c => map[c]);
+}
+
+function showToast(message, type) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas ${icons[type] || icons.info}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 40px 20px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+}
+
+.error-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 50px 40px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+
+.error-content .error-icon {
+    font-size: 4rem;
+    color: #ffb703;
+    margin-bottom: 20px;
+}
+
+.error-content .error-number {
+    font-size: 5rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1;
+}
+
+.error-content .error-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 10px 0;
+}
+
+.error-content .error-message {
+    color: #6c757d;
+    margin-bottom: 25px;
+}
+
+.error-content .btn-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: #2d6a4f;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.error-content .btn-home:hover {
+    background: #1b4332;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(45, 106, 79, 0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-icon">🔍</div>
+        <div class="error-number">404</div>
+        <div class="error-title">Page Not Found</div>
+        <div class="error-message">Oops! The page you're looking for doesn't exist or has been moved.</div>
+        <a href="/" class="btn-home">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

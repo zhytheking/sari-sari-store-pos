@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Login - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.login-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #0c1a12 0%, #1b4332 30%, #2d6a4f 60%, #40916c 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-section::before,
+.login-section::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: floatBg 20s ease-in-out infinite;
+}
+
+.login-section::before {
+    width: 400px;
+    height: 400px;
+    background: #52b788;
+    top: -100px;
+    right: -100px;
+}
+
+.login-section::after {
+    width: 300px;
+    height: 300px;
+    background: #ffb703;
+    bottom: -80px;
+    left: -80px;
+    animation-delay: -10s;
+}
+
+@keyframes floatBg {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+.login-container {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    padding: 45px 40px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2d6a4f, #52b788, #ffb703);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.login-logo .logo-store { color: var(--primary); }
+.login-logo .logo-sari { color: var(--secondary); }
+
+.login-header h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-top: 8px;
+}
+
+.login-header h2 i { color: var(--primary); }
+
+.login-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 2px;
+}
+
+.role-indicator-box {
+    margin-top: 15px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: var(--radius);
+    border: 1px solid #e9ecef;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.role-indicator-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+}
+
+.role-indicator-box .role-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.role-indicator-box .role-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.role-indicator-box .role-value.owner { color: var(--primary); }
+.role-indicator-box .role-value.cashier { color: var(--secondary-dark); }
+
+.role-indicator-box .role-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 2px;
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.form-group label i {
+    color: var(--primary);
+    margin-right: 6px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    transition: var(--transition);
+    font-family: inherit;
+    background: #fafafa;
+}
+
+.form-group input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
+    background: var(--white);
+}
+
+.password-wrapper { position: relative; }
+.password-wrapper input { padding-right: 45px; }
+
+.password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px;
+    transition: var(--transition);
+}
+
+.password-toggle:hover { color: var(--text-dark); }
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--white);
+    border: none;
+    padding: 14px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: var(--font-family);
+}
+
+.btn-login:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(45, 106, 79, 0.35);
+}
+
+.btn-login:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.login-footer .text-muted {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.login-footer code {
+    background: #f1f3f5;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.message-container { margin-top: 15px; }
+
+.message {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.message i { font-size: 1.1rem; }
+
+.btn-back-home {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+    text-align: center;
+    width: 100%;
+    transition: var(--transition);
+}
+
+.btn-back-home:hover { color: var(--primary); }
+
+.btn-back-home i { margin-right: 6px; }
+
+.loading-spinner-small {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.shake { animation: shake 0.5s ease; }
+
+@media (max-width: 480px) {
+    .login-card { padding: 30px 20px; }
+    .login-section { min-height: 70vh; padding: 20px 15px; }
+    .login-header h2 { font-size: 1.3rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="login-section">
+    <div class="login-container">
+        <div class="login-card" id="loginCard">
+            <div class="login-header">
+                <div class="login-logo">
+                    <span class="logo-store">🏪 Saliga </span>
+                    <span class="logo-sari">Sari-Sari</span>
+                    <span class="logo-store">Store</span>
+                </div>
+                <h2><i class="fas fa-sign-in-alt"></i> Staff Login</h2>
+                <p class="login-subtitle">Access the store management system</p>
+            </div>
+
+            <div class="role-indicator-box">
+                <span class="role-label">Logging in as:</span>
+                <span class="role-value" id="loginRoleDisplay">Owner</span>
+                <span class="role-hint">
+                    <i class="fas fa-info-circle"></i> Selected from homepage
+                </span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+                <input type="text" style="display:none" aria-hidden="true">
+                <input type="password" style="display:none" aria-hidden="true">
+
+                <div class="form-group">
+                    <label for="loginUsername">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text"
+                           id="loginUsername"
+                           name="username"
+                           placeholder="Enter username"
+                           required
+                           autofocus
+                           autocomplete="username"
+                           spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <div class="password-wrapper">
+                        <input type="password"
+                               id="loginPassword"
+                               name="password"
+                               placeholder="Enter password"
+                               required
+                               autocomplete="current-password">
+                        <button type="button" class="password-toggle"
+                                onclick="togglePassword('loginPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" checked> Remember me
+                    </label>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <div class="login-footer">
+                    <span class="text-muted">Welcome </span>
+                    <code>Owner &amp; Cashier Only</code>
+                </div>
+            </form>
+
+            <a href="/" class="btn-back-home">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+
+            <div id="loginMessage" class="message-container"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}

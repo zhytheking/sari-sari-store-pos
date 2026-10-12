@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-wrapper {
+    padding: 20px 0 40px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.settings-header {
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(27, 67, 50, 0.2);
+}
+
+.settings-header h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+.settings-header h1 i { color: #ffb703; margin-right: 10px; }
+.settings-header p { color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.settings-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+}
+
+.settings-card.full-width { grid-column: 1 / -1; }
+
+.settings-card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-card h2 i { color: #2d6a4f; }
+
+.settings-card .card-subtitle {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+.settings-card .form-group { margin-bottom: 15px; }
+
+.settings-card .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.settings-card .form-group input,
+.settings-card .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.settings-card .form-group input:focus,
+.settings-card .form-group select:focus {
+    border-color: #2d6a4f;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.settings-card .btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+.settings-card .btn-primary { background: #2d6a4f; color: white; }
+.settings-card .btn-primary:hover { background: #1b4332; }
+
+.settings-card .btn-danger { background: #dc3545; color: white; }
+.settings-card .btn-danger:hover { background: #b02a37; }
+
+.settings-card .btn-warning { background: #ffc107; color: #1a1a2e; }
+.settings-card .btn-warning:hover { background: #e6a800; }
+
+.password-requirements {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.password-requirements ul {
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+
+.password-requirements ul li { margin-bottom: 2px; }
+.password-requirements .valid { color: #198754; }
+.password-requirements .invalid { color: #dc3545; }
+
+.gcash-qr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    align-items: start;
+}
+
+.gcash-qr-preview {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.gcash-qr-preview .qr-placeholder-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+}
+
+.gcash-qr-preview .qr-placeholder-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.gcash-qr-preview img {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 12px;
+    border: 3px solid #007bff;
+    background: white;
+    padding: 8px;
+}
+
+.gcash-qr-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.gcash-qr-info {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-left: 4px solid #007bff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+
+.gcash-qr-info strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.qr-file-input-wrapper {
+    position: relative;
+}
+
+.qr-file-input-wrapper input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.qr-file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: #f8f9fa;
+    border: 2px dashed #adb5bd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.qr-file-input-label:hover {
+    border-color: #2d6a4f;
+    background: #f0fdf4;
+    color: #2d6a4f;
+}
+
+.qr-filename {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-align: center;
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .settings-grid { grid-template-columns: 1fr; }
+    .settings-header { padding: 20px; }
+    .gcash-qr-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper">
+    <div class="settings-header">
+        <h1><i class="fas fa-cog"></i> Settings</h1>
+        <p>Manage your store settings, GCash QR, and user passwords</p>
+    </div>
+
+    <div class="settings-grid">
+        <!-- STORE SETTINGS -->
+        <div class="settings-card full-width">
+            <h2><i class="fas fa-store"></i> Store Settings</h2>
+            <p class="card-subtitle">Configure your store information</p>
+            <form id="storeSettingsForm" onsubmit="updateSettings(event)">
+                <div class="form-group">
+                    <label>Store Name</label>
+                    <input type="text" id="storeName"
+                           placeholder="Enter store name...">
+                </div>
+                <div class="form-group">
+                    <label>Store Address</label>
+                    <input type="text" id="storeAddress"
+                           placeholder="Enter store address...">
+                </div>
+                <div class="form-group">
+                    <label>Store Phone</label>
+                    <input type="text" id="storePhone"
+                           placeholder="Enter phone number...">
+                </div>
+                <div class="form-group">
+                    <label>Store Email</label>
+                    <input type="email" id="storeEmail"
+                           placeholder="Enter email address...">
+                </div>
+                <div class="form-group">
+                    <label>Tax Rate (%)</label>
+                    <input type="number" id="taxRate" step="0.1"
+                           placeholder="e.g., 12">
+                </div>
+                <div class="form-group">
+                    <label>Low Stock Threshold</label>
+                    <input type="number" id="lowStockThreshold"
+                           placeholder="e.g., 10">
+                </div>
+                <div class="form-group">
+                    <label>Receipt Footer Message</label>
+                    <input type="text" id="receiptFooter"
+                           placeholder="Thank you for your purchase!">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </form>
+        </div>
+
+        <!-- GCASH QR -->
+        <div class="settings-card full-width">
+            <h2><i class="fas fa-qrcode"></i> GCash QR Code</h2>
+            <p class="card-subtitle">Upload the store's GCash QR code that customers scan to pay</p>
+
+            <div class="gcash-qr-info">
+                <strong><i class="fas fa-info-circle"></i> How this works</strong>
+                When a cashier selects "GCash" as the payment method during checkout,
+                this QR code is displayed on the POS screen.
+            </div>
+
+            <div class="gcash-qr-grid">
+                <div>
+                    <label style="font-weight:500;font-size:0.85rem;
+                                  color:#495057;display:block;
+                                  margin-bottom:8px;">
+                        Current QR Code
+                    </label>
+                    <div class="gcash-qr-preview" id="gcashQrPreview">
+                        <i class="fas fa-qrcode qr-placeholder-icon"></i>
+                        <p class="qr-placeholder-text">No QR uploaded</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-weight:500;font-size:0.85rem;
+                                  color:#495057;display:block;
+                                  margin-bottom:8px;">
+                        Upload New QR Code
+                    </label>
+
+                    <div class="qr-file-input-wrapper">
+                        <input type="file" id="gcashQrFile"
+                               accept="image/png,image/jpeg,image/jpg,image/webp"
+                               onchange="onQrFileChange(this)">
+                        <label for="gcashQrFile" class="qr-file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Choose image file</span>
+                        </label>
+                    </div>
+                    <span class="qr-filename" id="gcashQrFilename"></span>
+
+                    <p style="font-size:0.75rem;color:#6c757d;margin-top:10px;">
+                        <i class="fas fa-info-circle"></i>
+                        Recommended: Square PNG or JPG. Maximum 2 MB.
+                    </p>
+
+                    <div class="gcash-qr-actions">
+                        <button type="button" class="btn btn-primary"
+                                id="uploadQrBtn" onclick="uploadGcashQr()"
+                                disabled>
+                            <i class="fas fa-upload"></i> Upload QR
+                        </button>
+                        <button type="button" class="btn btn-danger"
+                                onclick="removeGcashQr()">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHANGE OWN PASSWORD -->
+        <div class="settings-card">
+            <h2><i class="fas fa-key"></i> Change My Password</h2>
+            <p class="card-subtitle">Update your own account password</p>
+            <form id="changeOwnPasswordForm"
+                  onsubmit="changeOwnPassword(event)">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="ownOldPassword" required
+                           placeholder="Enter current password...">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="ownNewPassword" required
+                           placeholder="Enter new password..."
+                           onkeyup="validatePasswordStrength('own')">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="ownConfirmPassword" required
+                           placeholder="Confirm new password..."
+                           onkeyup="validatePasswordMatch('own')">
+                </div>
+                <div id="ownPasswordRequirements" class="password-requirements">
+                    <strong>Password Requirements:</strong>
+                    <ul>
+                        <li id="ownLength">✓ At least 8 characters</li>
+                        <li id="ownUppercase">✓ At least one uppercase letter</li>
+                        <li id="ownLowercase">✓ At least one lowercase letter</li>
+                        <li id="ownNumber">✓ At least one number</li>
+                        <li id="ownMatch">✓ Passwords match</li>
+                    </ul>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </form>
+        </div>
+
+        <!-- ADMIN: CHANGE USER PASSWORD -->
+        <div class="settings-card">
+            <h2><i class="fas fa-user-cog"></i> Change User Password</h2>
+            <p class="card-subtitle">Reset password for any user (Admin only)</p>
+            <form id="changeUserPasswordForm"
+                  onsubmit="changeUserPassword(event)">
+                <div class="form-group">
+                    <label>Select User</label>
+                    <select id="userSelect" required>
+                        <option value="">Select a user...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="userNewPassword" required
+                           placeholder="Enter new password..."
+                           onkeyup="validatePasswordStrength('user')">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="userConfirmPassword" required
+                           placeholder="Confirm new password..."
+                           onkeyup="validatePasswordMatch('user')">
+                </div>
+                <div id="userPasswordRequirements" class="password-requirements">
+                    <strong>Password Requirements:</strong>
+                    <ul>
+                        <li id="userLength">✓ At least 8 characters</li>
+                        <li id="userUppercase">✓ At least one uppercase letter</li>
+                        <li id="userLowercase">✓ At least one lowercase letter</li>
+                        <li id="userNumber">✓ At least one number</li>
+                        <li id="userMatch">✓ Passwords match</li>
+                    </ul>
+                </div>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-sync-alt"></i> Reset Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

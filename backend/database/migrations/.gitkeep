@@ -1,0 +1,13 @@
+# This file keeps the versions directory in git
+# Migration files will be stored here when using Alembic
+# Since we're using raw SQL, this folder is for future use
+# and for storing custom migration scripts if needed.
+
+# If you want to use versioned migrations:
+# 1. Create SQL files in the parent directory with pattern V{version}__{description}.sql
+# 2. The migration manager will automatically detect and apply them
+
+# Example:
+#   V1__initial_schema.sql
+#   V2__add_product_tables.sql
+#   V3__create_sales_tables.sql

@@ -1,0 +1,1109 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================
+   CSS VARIABLES & RESET
+   ============================================ */
+:root {
+    --primary: #2d6a4f;
+    --primary-dark: #1b4332;
+    --primary-light: #52b788;
+    --secondary: #f4a261;
+    --secondary-dark: #e76f51;
+    --danger: #dc3545;
+    --success: #198754;
+    --warning: #ffc107;
+    --info: #0dcaf0;
+    --white: #ffffff;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+    --bg-light: #f8f9fa;
+    --border-color: #dee2e6;
+    --shadow: 0 4px 15px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --radius-lg: 16px;
+    --transition: all 0.3s ease;
+    --font-family: 'Poppins', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg-light);
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    flex: 1;
+    width: 100%;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+.navbar {
+    background: var(--white);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo .logo-link {
+    display: block;
+    transition: var(--transition);
+}
+
+.nav-logo .logo-link:hover {
+    transform: scale(1.02);
+}
+
+.logo-text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.logo-text .logo-store {
+    color: var(--primary);
+}
+
+.logo-text .logo-sari {
+    color: var(--secondary);
+}
+
+.logo-sub {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin-top: -2px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.nav-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+    background: rgba(45, 106, 79, 0.08);
+}
+
+.nav-links a.active {
+    color: var(--primary);
+    background: rgba(45, 106, 79, 0.1);
+}
+
+.nav-links a .nav-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 50px;
+    margin-left: 2px;
+}
+
+.nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: var(--success);
+    color: var(--white);
+}
+
+.btn-success:hover {
+    background: #157347;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.btn-outline-light {
+    background: transparent;
+    color: var(--white);
+    border: 2px solid var(--white);
+}
+
+.btn-outline-light:hover {
+    background: var(--white);
+    color: var(--primary);
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+.btn-lg {
+    padding: 14px 32px;
+    font-size: 1rem;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   LOGIN BUTTONS
+   ============================================ */
+.login-switch-section {
+    margin-top: 30px;
+    padding: 25px 30px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.login-switch-section .section-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-switch-section .section-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.login-switch-section .section-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.login-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.login-buttons .btn {
+    min-width: 200px;
+    padding: 14px 30px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-owner {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+}
+
+.btn-owner:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+}
+
+.btn-cashier {
+    background: var(--secondary);
+    color: var(--text-dark);
+    border: none;
+    border-radius: var(--radius);
+}
+
+.btn-cashier:hover {
+    background: #e6a800;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(244, 162, 97, 0.3);
+}
+
+.login-hint {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
+.login-hint i {
+    margin-right: 4px;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--bg-light);
+    color: var(--text-muted);
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.stock-badge.status-in-stock {
+    background: #d4edda;
+    color: #155724;
+}
+
+.stock-badge.status-low {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.stock-badge.status-out {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+.page {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(10deg); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    background: rgba(45, 106, 79, 0.1);
+    color: var(--primary);
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.section-title .highlight {
+    color: var(--primary);
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-success {
+    color: var(--success);
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.hero-section {
+    padding: 60px 0 40px;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    border-radius: var(--radius-lg);
+    margin-top: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: 40px 50px;
+}
+
+.hero-content {
+    color: var(--white);
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.hero-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+
+.hero-title .hero-highlight {
+    color: var(--secondary);
+    display: block;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 35px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+.hero-stat .stat-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    display: block;
+}
+
+.hero-stat .stat-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.hero-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-store-icon {
+    font-size: 8rem;
+    color: rgba(255,255,255,0.1);
+    position: relative;
+}
+
+.hero-store-icon i {
+    font-size: 10rem;
+    color: rgba(255,255,255,0.08);
+}
+
+.floating-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.floating-icons i {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.15);
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-icons i:nth-child(1) { top: 5%; left: 5%; animation-delay: 0s; }
+.floating-icons i:nth-child(2) { top: 15%; right: 10%; animation-delay: 1.5s; }
+.floating-icons i:nth-child(3) { bottom: 20%; left: 10%; animation-delay: 3s; }
+.floating-icons i:nth-child(4) { bottom: 5%; right: 5%; animation-delay: 4.5s; }
+
+/* ============================================
+   FEATURES SECTION
+   ============================================ */
+.features-section {
+    padding: 60px 0;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.feature-card {
+    background: var(--white);
+    padding: 30px;
+    border-radius: var(--radius);
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 18px;
+    background: rgba(45, 106, 79, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--primary);
+}
+
+.feature-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.feature-tag {
+    display: inline-block;
+    padding: 2px 12px;
+    background: var(--bg-light);
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid #0d6efd;
+}
+
+.toast-success { border-left-color: #198754; }
+.toast-error { border-left-color: #dc3545; }
+.toast-warning { border-left-color: #ffc107; }
+.toast-info { border-left-color: #0dcaf0; }
+
+.toast i:first-child { font-size: 1.2rem; }
+.toast-success i:first-child { color: #198754; }
+.toast-error i:first-child { color: #dc3545; }
+.toast-warning i:first-child { color: #ffc107; }
+.toast-info i:first-child { color: #0dcaf0; }
+
+.toast span { flex: 1; font-size: 0.95rem; }
+.toast button {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 0.9rem;
+}
+.toast button:hover { color: #dc3545; }
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-content p {
+    margin-top: 15px;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+    background: var(--text-dark);
+    color: rgba(255,255,255,0.7);
+    padding: 50px 0 20px;
+    margin-top: 60px;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.footer-brand .footer-logo {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.footer-brand .footer-logo .logo-store { color: var(--primary-light); }
+.footer-brand .footer-logo .logo-sari { color: var(--secondary); }
+
+.footer-description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.footer-social a {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.6);
+    transition: var(--transition);
+}
+
+.footer-social a:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.footer h4 {
+    color: var(--white);
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.footer ul li {
+    margin-bottom: 8px;
+}
+
+.footer ul li a {
+    color: rgba(255,255,255,0.6);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.footer ul li a:hover {
+    color: var(--white);
+}
+
+.footer ul li i {
+    margin-right: 8px;
+    width: 18px;
+    color: var(--primary-light);
+}
+
+.footer ul li span {
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.footer-heart i {
+    color: #dc3545;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    
+    .hero-actions {
+        justify-content: center;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        flex-direction: column;
+        padding: 15px 20px;
+        box-shadow: var(--shadow-lg);
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-links a {
+        width: 100%;
+        padding: 10px 16px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-stats {
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .login-buttons .btn {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .login-switch-section {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 12px;
+    }
+    
+    .hero-section {
+        padding: 30px 0 20px;
+        border-radius: var(--radius);
+    }
+    
+    .hero-title {
+        font-size: 1.6rem;
+    }
+    
+    .login-switch-section {
+        padding: 15px 10px;
+    }
+
+    .login-switch-section .section-header h3 {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                🛒 Open for Business
+            </div>
+            <h1 class="hero-title">
+                <span id="heroStoreName">Your Neighborhood</span>
+                <span class="hero-highlight" id="heroStoreType">Sari-Sari Store</span>
+            </h1>
+            <p class="hero-subtitle">
+                Quality products at affordable prices.
+                <span style="display:block;">Real-time stock availability.</span>
+            </p>
+            <div class="hero-actions">
+                <a href="/products" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag"></i> Browse Products
+                </a>
+                <a href="/login" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Staff Login
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="stat-number" id="totalProductsStat">0</span>
+                    <span class="stat-label">Products Available</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-number" id="inStockStat">0</span>
+                    <span class="stat-label">In Stock</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-number text-warning" id="lowStockStat">0</span>
+                    <span class="stat-label">Low Stock</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-store-icon">
+                <i class="fas fa-store-alt"></i>
+                <div class="floating-icons">
+                    <i class="fas fa-box"></i>
+                    <i class="fas fa-tag"></i>
+                    <i class="fas fa-shopping-cart"></i>
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <span class="section-badge">Why Choose Us</span>
+        <h2 class="section-title">What Makes Us <span class="highlight">Your Store</span></h2>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <h3>Real-time Stock</h3>
+            <p>Always know what's available before you visit</p>
+            <span class="feature-tag">Live Updates</span>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fas fa-tags"></i>
+            </div>
+            <h3>Affordable Prices</h3>
+            <p>Best prices in the neighborhood, guaranteed</p>
+            <span class="feature-tag">Save Money</span>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fas fa-store"></i>
+            </div>
+            <h3>Fast Checkout</h3>
+            <p>Cash or GCash payments accepted</p>
+            <span class="feature-tag">Quick & Easy</span>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================
+     STAFF LOGIN
+     ========================================== -->
+<section class="login-switch-section">
+    <div class="section-header">
+        <h3><i class="fas fa-user-lock"></i> Staff Login</h3>
+        <p>Choose your role to login to the management system</p>
+    </div>
+
+    <div class="login-buttons">
+        <a href="/login?role=owner" class="btn btn-owner btn-lg" id="loginOwnerBtn">
+            <i class="fas fa-crown"></i> Login as Owner
+        </a>
+        <a href="/login?role=cashier" class="btn btn-cashier btn-lg" id="loginCashierBtn">
+            <i class="fas fa-cash-register"></i> Login as Cashier
+        </a>
+    </div>
+
+    <div class="login-hint">
+        <i class="fas fa-info-circle"></i> Select your role to access the appropriate dashboard
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ============================================
+// LOAD HERO STORE NAME — public endpoint, no auth
+// ============================================
+async function loadHeroStoreName() {
+    try {
+        const r = await fetch('/api/v1/settings/public-no-auth');
+        if (!r.ok) return;
+        const data = await r.json();
+        if (!data || !data.success) return;
+
+        const hero = document.getElementById('heroStoreName');
+        const typeEl = document.getElementById('heroStoreType');
+        if (hero && data.data.store_name) {
+            hero.textContent = data.data.store_name;
+        }
+        if (typeEl) {
+            typeEl.textContent = '';
+        }
+    } catch (e) {
+        // Silent — fall back to the default hero text
+        console.warn('[hero-store]', e);
+    }
+}
+
+// ============================================
+// LOAD STATS — real-time from API
+// ============================================
+function loadStats() {
+    fetch('/api/v1/products')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const products = data.data.items || [];
+                const total = products.length;
+                const inStock = products.filter(p => (p.stock_quantity || 0) > 10).length;
+                const lowStock = products.filter(p => (p.stock_quantity || 0) > 0 && (p.stock_quantity || 0) <= 10).length;
+
+                const totalEl = document.getElementById('totalProductsStat');
+                const inStockEl = document.getElementById('inStockStat');
+                const lowStockEl = document.getElementById('lowStockStat');
+                const countEl = document.getElementById('productCount');
+
+                if (totalEl) totalEl.textContent = total;
+                if (inStockEl) inStockEl.textContent = inStock;
+                if (lowStockEl) lowStockEl.textContent = lowStock;
+                if (countEl) countEl.textContent = total;
+            }
+        })
+        .catch(error => console.error('Error loading stats:', error));
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    loadHeroStoreName();
+    loadStats();
+    setInterval(loadStats, 30000);
+});
+
+window.loadStats = loadStats;
+window.loadHeroStoreName = loadHeroStoreName;
+</script>
+{% endblock %}

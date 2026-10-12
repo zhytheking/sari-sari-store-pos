@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Categories - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.categories-wrapper {
+    padding: 20px 0 40px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.categories-header {
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(27, 67, 50, 0.2);
+}
+
+.categories-header h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+.categories-header h1 i { color: #ffb703; margin-right: 10px; }
+.categories-header p { color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
+
+.categories-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    align-items: center;
+}
+
+.categories-actions .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+.categories-actions .btn-primary { background: #2d6a4f; color: white; }
+.categories-actions .btn-primary:hover { background: #1b4332; }
+
+.categories-actions .btn-secondary { background: #e9ecef; color: #495057; }
+.categories-actions .btn-secondary:hover { background: #dee2e6; }
+
+.search-box {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-box input {
+    padding: 8px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    width: 220px;
+}
+
+.search-box input:focus { border-color: #2d6a4f; outline: none; }
+
+.categories-table-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    overflow-x: auto;
+}
+
+.categories-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.categories-table th {
+    text-align: left;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.categories-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f3f5;
+    color: #1a1a2e;
+}
+
+.categories-table tr:hover td { background: #fafbfc; }
+
+.categories-table .category-name {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.categories-table .category-description {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.categories-table .product-count {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #e6f4ea;
+    color: #1e8e3e;
+}
+
+.categories-table .product-count.empty {
+    background: #f1f3f5;
+    color: #6c757d;
+}
+
+.categories-table .btn-delete {
+    padding: 5px 12px;
+    background: #fce8e6;
+    color: #d93025;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: inherit;
+}
+
+.categories-table .btn-delete:hover:not(:disabled) {
+    background: #d93025;
+    color: white;
+}
+
+.categories-table .btn-delete:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.modal-content h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-content h2 i { color: #2d6a4f; }
+
+.modal-content .form-group { margin-bottom: 15px; }
+
+.modal-content .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.modal-content .form-group input:focus,
+.modal-content .form-group textarea:focus {
+    border-color: #2d6a4f;
+    outline: none;
+}
+
+.modal-content .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-content .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-content .modal-actions .btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.modal-content .modal-actions .btn-primary { background: #2d6a4f; color: white; }
+.modal-content .modal-actions .btn-secondary { background: #e9ecef; color: #6c757d; }
+
+.loading-state, .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #e9ecef;
+    border-top-color: #2d6a4f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    color: #dee2e6;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.empty-state p { color: #6c757d; }
+
+@media (max-width: 768px) {
+    .categories-actions { flex-direction: column; align-items: stretch; }
+    .search-box { margin-left: 0; width: 100%; }
+    .search-box input { width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="categories-wrapper">
+    <div class="categories-header">
+        <h1><i class="fas fa-tags"></i> Categories</h1>
+        <p>Manage product categories. Changes are reflected in the POS and GUI immediately.</p>
+    </div>
+
+    <div class="categories-actions">
+        <button class="btn btn-primary" onclick="openAddCategoryModal()">
+            <i class="fas fa-plus"></i> Add Category
+        </button>
+        <button class="btn btn-secondary" onclick="loadCategories()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <div class="search-box">
+            <input type="text" id="searchInput"
+                   placeholder="Search categories..."
+                   onkeyup="filterTable()">
+        </div>
+    </div>
+
+    <div class="categories-table-wrapper">
+        <table class="categories-table">
+            <thead>
+                <tr>
+                    <th style="width:60px;">ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th style="width:140px;">Products</th>
+                    <th style="width:120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoriesTableBody">
+                <tr>
+                    <td colspan="5" style="text-align:center;padding:40px;">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top:10px;color:#6c757d;">
+                            Loading categories...
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addCategoryModal">
+    <div class="modal-content">
+        <h2><i class="fas fa-plus-circle"></i> Add Category</h2>
+        <form id="addCategoryForm" onsubmit="submitAddCategory(event)">
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text" id="categoryName"
+                       placeholder="e.g., Beverages, Snacks..."
+                       required maxlength="50" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Description (Optional)</label>
+                <textarea id="categoryDescription"
+                          placeholder="What kinds of products go in this category?"
+                          maxlength="255"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Create Category
+                </button>
+                <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addCategoryModal')">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/categories.js') }}"></script>
+{% endblock %}

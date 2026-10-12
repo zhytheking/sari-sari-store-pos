@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Product Details - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.product-detail-container {
+    padding: 40px 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.product-detail-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+    overflow: hidden;
+    padding: 40px;
+}
+
+.product-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 20px;
+    transition: color 0.2s ease;
+}
+
+.product-detail-back:hover { color: #2d6a4f; }
+
+.product-detail-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 12px 0;
+}
+
+.product-detail-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.product-detail-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.product-detail-meta span i { color: #2d6a4f; }
+
+.product-detail-price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2d6a4f;
+    margin: 16px 0;
+}
+
+.product-detail-stock {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stock-badge.status-in-stock { background: #d4edda; color: #155724; }
+.stock-badge.status-low { background: #fff3cd; color: #856404; }
+.stock-badge.status-out { background: #f8d7da; color: #721c24; }
+
+.stock-count {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.product-detail-description {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e9ecef;
+}
+
+.product-detail-description h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #495057;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-detail-description p {
+    color: #6c757d;
+    line-height: 1.7;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e9ecef;
+    border-top-color: #2d6a4f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.error-state i { font-size: 3rem; color: #dc3545; margin-bottom: 15px; }
+.error-state h3 { font-size: 1.2rem; margin-bottom: 8px; color: #1a1a2e; }
+.error-state p { color: #6c757d; margin-bottom: 20px; }
+
+.btn-back-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2d6a4f;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-back-primary:hover {
+    background: #1b4332;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+}
+
+@media (max-width: 768px) {
+    .product-detail-card { padding: 25px; }
+    .product-detail-name { font-size: 1.5rem; }
+    .product-detail-price { font-size: 2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div id="productDetailCard" class="product-detail-card">
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading product details...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const productId = {{ product_id }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProductDetail();
+});
+
+function loadProductDetail() {
+    const card = document.getElementById('productDetailCard');
+
+    fetch(`/api/v1/products/${productId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                renderProductDetail(data.data);
+            } else {
+                card.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Product not found</h3>
+                        <p>The product you're looking for doesn't exist.</p>
+                        <a href="/products" class="btn-back-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Products
+                        </a>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            card.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Failed to load product</h3>
+                    <p>Please try again later.</p>
+                    <button class="btn-back-primary" onclick="loadProductDetail()">
+                        <i class="fas fa-sync"></i> Retry
+                    </button>
+                </div>
+            `;
+        });
+}
+
+function renderProductDetail(product) {
+    const card = document.getElementById('productDetailCard');
+    const stock = product.stock_quantity || 0;
+    const minStock = product.min_stock_level || 10;
+
+    let statusText, statusClass;
+    if (stock > minStock) {
+        statusText = 'In Stock';
+        statusClass = 'status-in-stock';
+    } else if (stock > 0) {
+        statusText = 'Low Stock';
+        statusClass = 'status-low';
+    } else {
+        statusText = 'Out of Stock';
+        statusClass = 'status-out';
+    }
+
+    const barcode = product.barcode || '';
+
+    card.innerHTML = `
+        <a href="/products" class="product-detail-back">
+            <i class="fas fa-arrow-left"></i> Back to Products
+        </a>
+
+        <h1 class="product-detail-name">${escapeHtml(product.name)}</h1>
+
+        <div class="product-detail-meta">
+            <span><i class="fas fa-tag"></i> ${escapeHtml(product.category_name || 'Uncategorized')}</span>
+            ${barcode ? `<span><i class="fas fa-barcode"></i> ${escapeHtml(barcode)}</span>` : ''}
+        </div>
+
+        <div class="product-detail-price">₱${(product.selling_price || 0).toFixed(2)}</div>
+
+        <div class="product-detail-stock">
+            <span class="stock-badge ${statusClass}">${statusText}</span>
+            <span class="stock-count">${stock} units remaining</span>
+        </div>
+
+        <div class="product-detail-description">
+            <h4>Description</h4>
+            <p>${escapeHtml(product.description || 'No description available.')}</p>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

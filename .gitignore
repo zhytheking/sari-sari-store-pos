@@ -1,0 +1,65 @@
+﻿# ── Python ──
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# ── Virtual Environment ──
+venv/
+.venv/
+env/
+ENV/
+
+# ── Environment & Secrets ──
+.env
+.env.local
+.env.production
+.env.*.local
+!.env.example
+
+# ── Database ──
+data/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+data/backups/
+
+# ── Logs ──
+logs/
+*.log
+*.log.*
+
+# ── Testing ──
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Backups made during cleanup ──
+*.bak
+*.broken_*
+
+# ── Uploads (dev artifacts) ──
+frontend/web/static/assets/products/*
+!frontend/web/static/assets/products/.gitkeep
+frontend/web/static/assets/qrcodes/*
+!frontend/web/static/assets/qrcodes/.gitkeep
+
+# ── Runtime alerts ──
+HEALTH_ALERT.txt
+
+# ── Build artifacts ──
+*.spec

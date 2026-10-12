@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Management - Saliga Sari-Sari Store{% endblock %}
+
+{% block extra_css %}
+<style>
+.stock-wrapper {
+    padding: 20px 0 40px;
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.stock-header {
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 40px rgba(27, 67, 50, 0.2);
+}
+
+.stock-header h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+.stock-header h1 i { color: #ffb703; margin-right: 10px; }
+.stock-header p { color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
+
+.stock-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+}
+
+.stat-card .stat-number { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; }
+.stat-card .stat-label { font-size: 0.85rem; color: #6c757d; }
+.stat-card .stat-number.danger { color: #dc3545; }
+.stat-card .stat-number.warning { color: #e37400; }
+.stat-card .stat-number.success { color: #198754; }
+
+.actions-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    background: white;
+    padding: 14px 18px;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    align-items: center;
+    border-left: 4px solid #2d6a4f;
+}
+
+.actions-bar .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+.actions-bar .btn-add-product  { background: #2d6a4f; color: white; }
+.actions-bar .btn-add-stock    { background: #198754; color: white; }
+.actions-bar .btn-remove-stock { background: #e37400; color: white; }
+.actions-bar .btn-adjust-stock { background: #6c757d; color: white; }
+.actions-bar .btn-delete       { background: #dc3545; color: white; }
+
+.search-box {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-box input {
+    padding: 8px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    width: 220px;
+}
+
+.search-box input:focus {
+    border-color: #2d6a4f;
+    outline: none;
+}
+
+.selection-hint {
+    background: #e0f2fe;
+    border-left: 3px solid #0284c7;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #0369a1;
+    margin-bottom: 15px;
+    display: none;
+}
+
+.selection-hint.visible { display: block; }
+
+.table-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    overflow-x: auto;
+}
+
+.table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+.table-wrapper th {
+    text-align: left;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-wrapper td { padding: 10px 15px; border-bottom: 1px solid #f1f3f5; }
+
+.table-wrapper tbody tr { cursor: pointer; transition: all 0.15s ease; }
+.table-wrapper tbody tr:hover td { background: #fafbfc; }
+.table-wrapper tbody tr.selected td {
+    background: #d8f3dc;
+    border-top: 1px solid #2d6a4f;
+    border-bottom: 1px solid #2d6a4f;
+}
+
+.table-wrapper tbody tr.row-out-of-stock { background: #fef2f2; }
+.table-wrapper tbody tr.row-out-of-stock.selected td { background: #fbcfe8; }
+.table-wrapper tbody tr.row-low-stock { background: #fffbeb; }
+.table-wrapper tbody tr.row-low-stock.selected td { background: #fde68a; }
+
+.table-wrapper .stock-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.table-wrapper .stock-badge.in-stock { background: #d4edda; color: #155724; }
+.table-wrapper .stock-badge.low { background: #fff3cd; color: #856404; }
+.table-wrapper .stock-badge.out { background: #f8d7da; color: #721c24; }
+
+.table-wrapper .product-image-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f1f3f5;
+}
+
+.notification-banner {
+    background: #fef3c7;
+    border-left: 4px solid #e37400;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.notification-banner i { font-size: 1.4rem; color: #e37400; }
+.notification-banner .banner-text { flex: 1; font-size: 0.9rem; color: #1a1a2e; }
+.notification-banner button {
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #92400e;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-box {
+    background: white;
+    border-radius: 20px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px 32px 24px;
+    position: relative;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+}
+
+.modal-box .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 1.4rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.modal-box .modal-close:hover { background: #f1f3f5; color: #1a1a2e; }
+
+.modal-box .modal-icon {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 6px;
+}
+
+.modal-box h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+    margin: 0 0 6px 0;
+    padding: 0 30px;
+    word-break: break-word;
+}
+
+.modal-box .modal-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 22px;
+}
+
+.modal-box .form-group { margin-bottom: 15px; }
+
+.modal-box .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.modal-box .form-group input[type="text"],
+.modal-box .form-group input[type="number"],
+.modal-box .form-group select,
+.modal-box .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: #f8f9fa;
+}
+
+.modal-box .form-group input:focus,
+.modal-box .form-group select:focus,
+.modal-box .form-group textarea:focus {
+    border-color: #2d6a4f;
+    outline: none;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.modal-box .form-group input.qty-input {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    color: #1a1a2e;
+    letter-spacing: 1px;
+}
+
+.modal-box .form-group .input-with-button {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.modal-box .form-group .input-with-button input { flex: 1; }
+
+.modal-box .form-group .input-with-button button {
+    padding: 0 16px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-box .form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.modal-box .modal-error {
+    display: none;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+}
+
+.modal-box .modal-error.visible { display: block; }
+
+.modal-box .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.modal-box .modal-actions .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.modal-box .modal-actions .btn-cancel {
+    background: #f1f3f5;
+    color: #495057;
+    flex: 0 0 auto;
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+.modal-box .modal-actions .btn-add-product  { background: #2d6a4f; color: white; }
+.modal-box .modal-actions .btn-add-stock    { background: #198754; color: white; }
+.modal-box .modal-actions .btn-remove-stock { background: #e37400; color: white; }
+.modal-box .modal-actions .btn-adjust-stock { background: #6c757d; color: white; }
+.modal-box .modal-actions .btn-delete       { background: #dc3545; color: white; }
+
+.modal-box .modal-actions .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+    .actions-bar { flex-direction: column; align-items: stretch; }
+    .actions-bar .btn { width: 100%; justify-content: center; }
+    .search-box { margin-left: 0; width: 100%; }
+    .search-box input { width: 100%; }
+    .modal-box { padding: 24px 20px 18px; }
+    .modal-box h2 { font-size: 1rem; padding: 0 24px; }
+    .modal-box .form-row-2col { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stock-wrapper">
+    <div class="stock-header">
+        <h1><i class="fas fa-boxes"></i> Stock Management</h1>
+        <p>Select a product row, then choose an action below</p>
+    </div>
+
+    <div class="notification-banner" id="stockBanner" style="display:none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="banner-text" id="stockBannerText"></div>
+        <button onclick="document.getElementById('stockBanner').style.display='none'">
+            Dismiss
+        </button>
+    </div>
+
+    <div class="stock-stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalProducts">0</div>
+            <div class="stat-label">Total Products</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number success" id="inStockValue">₱0</div>
+            <div class="stat-label">Total Inventory Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number warning" id="lowStockCount">0</div>
+            <div class="stat-label">Low Stock Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number danger" id="outOfStockCount">0</div>
+            <div class="stat-label">Out of Stock</div>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <button class="btn btn-add-product" onclick="openAddProductModal()">
+            <i class="fas fa-plus"></i> Add Product
+        </button>
+        <button class="btn btn-add-stock" onclick="openStockModal('add')">
+            <i class="fas fa-download"></i> Add Stock
+        </button>
+        <button class="btn btn-remove-stock" onclick="openStockModal('remove')">
+            <i class="fas fa-upload"></i> Remove Stock
+        </button>
+        <button class="btn btn-adjust-stock" onclick="openStockModal('adjust')">
+            <i class="fas fa-cog"></i> Adjust Stock
+        </button>
+        <button class="btn btn-delete" onclick="openDeleteModal()">
+            <i class="fas fa-trash"></i> Delete
+        </button>
+        <div class="search-box">
+            <input type="text" id="searchInput"
+                   placeholder="Search products..."
+                   onkeyup="filterTable()">
+        </div>
+    </div>
+
+    <div class="selection-hint" id="selectionHint">
+        <i class="fas fa-info-circle"></i>
+        Selected: <strong id="selectedProductName">—</strong>
+        &nbsp;·&nbsp; Current stock: <strong id="selectedProductStock">0</strong>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Min Stock</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="stockTableBody">
+                <tr>
+                    <td colspan="6" style="text-align:center;padding:40px;">
+                        <div class="loading-spinner"
+                             style="margin:0 auto 12px;"></div>
+                        <p style="margin-top:10px;color:#6c757d;">
+                            Loading products...
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="stockModal">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeStockModal()">&times;</button>
+
+        <div class="modal-icon" id="stockModalIcon">📥</div>
+        <h2 id="stockModalTitle">Add Stock</h2>
+        <div class="modal-subtitle" id="stockModalSubtitle">
+            Current stock: <strong>0</strong>
+        </div>
+
+        <div class="modal-error" id="stockModalError"></div>
+
+        <form id="stockForm" onsubmit="submitStockForm(event)">
+            <div class="form-group">
+                <label id="stockQtyLabel">Quantity</label>
+                <input type="number" id="stockQtyInput" class="qty-input"
+                       min="0" step="1" value="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Reason</label>
+                <select id="stockReasonSelect" required></select>
+            </div>
+
+            <div class="form-group">
+                <label>Note (optional)</label>
+                <input type="text" id="stockNoteInput"
+                       placeholder="Add a short note..." maxlength="200">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel"
+                        onclick="closeStockModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn" id="stockSubmitBtn">
+                    Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addProductModal">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeAddProductModal()">&times;</button>
+
+        <div class="modal-icon">➕</div>
+        <h2>Add Product</h2>
+        <div class="modal-subtitle">Fill in the details below</div>
+
+        <div class="modal-error" id="addProductError"></div>
+
+        <form id="addProductForm" onsubmit="submitAddProduct(event)">
+            <div class="form-group">
+                <label>Product Name *</label>
+                <input type="text" id="apName" required maxlength="100"
+                       placeholder="e.g., Coca-Cola 1.5L">
+            </div>
+
+            <div class="form-group">
+                <label>Barcode</label>
+                <div class="input-with-button">
+                    <input type="text" id="apBarcode" maxlength="50"
+                           placeholder="Scan or type...">
+                    <button type="button"
+                            onclick="generateBarcodeForNewProduct()">
+                        🎲 Generate
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select id="apCategory">
+                    <option value="">— Uncategorized —</option>
+                </select>
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label>Purchase Price *</label>
+                    <input type="number" id="apPurchasePrice" min="0"
+                           step="0.01" value="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Selling Price *</label>
+                    <input type="number" id="apSellingPrice" min="0"
+                           step="0.01" value="0.00" required>
+                </div>
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label>Stock Quantity</label>
+                    <input type="number" id="apStockQuantity" min="0"
+                           step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Min Stock Level</label>
+                    <input type="number" id="apMinStockLevel" min="0"
+                           step="1" value="10">
+                </div>
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label>Unit</label>
+                    <input type="text" id="apUnit" value="pc" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label>Tax Rate (%)</label>
+                    <input type="number" id="apTaxRate" min="0" max="100"
+                           step="0.1" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description (optional)</label>
+                <textarea id="apDescription" maxlength="500"
+                          placeholder="Short description..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel"
+                        onclick="closeAddProductModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-add-product"
+                        id="addProductSubmitBtn">
+                    Create Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" onclick="event.stopPropagation()"
+         style="max-width:420px;">
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+
+        <div class="modal-icon">🗑️</div>
+        <h2>Delete Product</h2>
+        <div class="modal-subtitle" id="deleteModalSubtitle">
+            This will hide the product from all lists.
+        </div>
+
+        <div class="modal-error" id="deleteModalError"></div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn btn-cancel"
+                    onclick="closeDeleteModal()">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-delete"
+                    id="deleteConfirmBtn"
+                    onclick="confirmDeleteProduct()">
+                Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/stocks.js') }}"></script>
+{% endblock %}

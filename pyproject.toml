@@ -1,0 +1,13 @@
+[tool.pytest.ini_options]
+addopts = "-p no:langsmith"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+verbosity = 1
+
+[tool.pytest.ini_options.filterwarnings]
+ignore = [
+    "DeprecationWarning",
+    "SyntaxWarning"
+]

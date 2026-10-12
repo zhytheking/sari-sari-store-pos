@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}2026 Saliga Sari-Sari Store{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2d6a4f;
+            --primary-dark: #1b4332;
+            --primary-light: #52b788;
+            --secondary: #f4a261;
+            --secondary-dark: #e76f51;
+            --danger: #dc3545;
+            --success: #198754;
+            --warning: #ffc107;
+            --info: #0dcaf0;
+            --white: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --bg-light: #f8f9fa;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+            --radius: 8px;
+            --radius-lg: 16px;
+            --transition: all 0.3s ease;
+            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        a { text-decoration: none; color: inherit; cursor: pointer; transition: var(--transition); }
+        ul { list-style: none; }
+        img { max-width: 100%; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .navbar {
+            background: var(--white);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo .logo-link { display: block; transition: var(--transition); }
+        .nav-logo .logo-link:hover { transform: scale(1.02); }
+
+        .logo-text {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text .logo-store { color: var(--primary); }
+        .logo-text .logo-sari { color: var(--secondary); }
+
+        .logo-sub {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            margin-top: -2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(45, 106, 79, 0.08);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            background: rgba(45, 106, 79, 0.1);
+        }
+
+        #authNavLinks {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .footer {
+            background: var(--text-dark);
+            color: rgba(255,255,255,0.7);
+            padding: 60px 0 25px;
+            margin-top: 60px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand .footer-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .footer-brand .footer-logo .logo-store { color: var(--primary-light); }
+        .footer-brand .footer-logo .logo-sari { color: var(--secondary); }
+
+        .footer-description {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            max-width: 300px;
+            opacity: 0.7;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .footer-social a {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+
+        .footer-social a:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-3px);
+        }
+
+        .footer h4 {
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .footer ul li {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .footer ul li a {
+            color: rgba(255,255,255,0.5);
+            transition: var(--transition);
+        }
+
+        .footer ul li a:hover { color: var(--white); }
+
+        .footer ul li i {
+            margin-right: 10px;
+            width: 20px;
+            color: var(--primary-light);
+        }
+
+        .footer ul li span {
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+            gap: 10px;
+            opacity: 0.6;
+        }
+
+        .footer-heart i { color: #dc3545; }
+
+        .toast-container {
+            position: fixed;
+            top: 90px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid var(--info);
+        }
+
+        .toast-success { border-left-color: var(--success); }
+        .toast-error { border-left-color: var(--danger); }
+        .toast-warning { border-left-color: var(--warning); }
+        .toast-info { border-left-color: var(--info); }
+
+        .toast i:first-child { font-size: 1.3rem; }
+        .toast-success i:first-child { color: var(--success); }
+        .toast-error i:first-child { color: var(--danger); }
+        .toast-warning i:first-child { color: var(--warning); }
+        .toast-info i:first-child { color: var(--info); }
+
+        .toast span { flex: 1; font-size: 0.95rem; }
+        .toast button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 1rem;
+        }
+        .toast button:hover { color: var(--danger); }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+        }
+
+        .loading-content { text-align: center; }
+
+        .loading-content .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e9ecef;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loading-content p {
+            margin-top: 16px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: var(--white); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+        .text-muted { color: var(--text-muted); }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-warning { color: var(--warning); }
+
+        .relative-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #6c757d;
+            background: #f1f3f5;
+            padding: 2px 9px;
+            border-radius: 50px;
+            margin-left: 6px;
+            white-space: nowrap;
+            vertical-align: middle;
+            line-height: 1.4;
+        }
+
+        .relative-time.fresh { color: #198754; background: #d4edda; }
+        .relative-time.recent { color: #0d6efd; background: #dbeafe; }
+
+        .relative-time .relative-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #198754;
+            animation: relPulse 1.6s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes relPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--white);
+                flex-direction: column;
+                padding: 20px 24px;
+                box-shadow: var(--shadow-lg);
+                border-top: 1px solid var(--border-color);
+            }
+
+            .nav-links.active { display: flex; }
+            .nav-links a { width: 100%; padding: 12px 16px; }
+
+            #authNavLinks {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+            .footer-bottom { flex-direction: column; text-align: center; }
+            .toast-container {
+                top: 80px; right: 12px; left: 12px; max-width: 100%;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" class="logo-link">
+                    <div class="logo-text">
+                        <span class="logo-store" id="navStoreName">🏪 Loading...</span>
+                    </div>
+                    <div class="logo-sub" id="navStoreTagline">Your Neighborhood Store</div>
+                </a>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/products" class="{% if request.path == '/products' %}active{% endif %}">
+                    <i class="fas fa-box"></i> Products
+                </a>
+
+                <div id="authNavLinks" style="display:none;">
+                    <a href="/admin/dashboard" id="dashboardNavLink">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span id="navRoleText">Dashboard</span>
+                    </a>
+                    <a href="/admin/all-sales" id="adminSalesLink" style="display:none;">
+                        <i class="fas fa-clipboard-list"></i> All Sales
+                    </a>
+                    <a href="/admin/categories" id="adminCategoriesLink" style="display:none;">
+                        <i class="fas fa-tags"></i> Categories
+                    </a>
+                    <a href="/admin/audit-log" id="adminAuditLink" style="display:none;">
+                        <i class="fas fa-history"></i> Audit Log
+                    </a>
+                    <a href="/cashier/sales" id="cashierSalesLink" style="display:none;">
+                        <i class="fas fa-receipt"></i> My Sales
+                    </a>
+                    <a href="#" id="logoutNavLink" onclick="logoutUser(event)">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+
+                <a href="/login" id="loginNavLink"
+                   class="{% if request.path == '/login' %}active{% endif %}">
+                    <i class="fas fa-sign-in-alt"></i> Staff Login
+                </a>
+            </div>
+            <button class="nav-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-store" id="footerStoreName">🏪 Loading...</span>
+                    </div>
+                    <p class="footer-description">
+                        Your neighborhood store serving the community with quality products and a smile.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/login">Staff Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> <span id="footerAddress">—</span></li>
+                        <li><i class="fas fa-phone"></i> <span id="footerPhone">—</span></li>
+                        <li><i class="fas fa-envelope"></i> <span id="footerEmail">—</span></li>
+                    </ul>
+                </div>
+                <div class="footer-hours">
+                    <h4>Store Hours</h4>
+                    <ul>
+                        <li><span>Mon - Sat:</span> 7:00 AM - 8:00 PM</li>
+                        <li><span>Sunday:</span> 8:00 AM - 6:00 PM</li>
+                        <li class="text-success"><i class="fas fa-check-circle"></i> Open Today</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 <span id="footerCopyrightName">Group 2 Development Team</span>. All rights reserved.</p>
+                <p class="footer-heart">Made with <i class="fas fa-heart text-danger"></i> in Bukidnon</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loadingMessage">Loading...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api-client.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+        (function authNavBoot() {
+            async function refreshAuthNav() {
+                let who = null;
+                try {
+                    const resp = await fetch('/api/auth/whoami', {
+                        credentials: 'same-origin'
+                    });
+                    if (resp.ok) {
+                        who = await resp.json();
+                    }
+                } catch (e) {
+                    console.warn('[auth-nav] whoami failed:', e);
+                }
+
+                const loginLink        = document.getElementById('loginNavLink');
+                const authNavLinks     = document.getElementById('authNavLinks');
+                const dashboardLink    = document.getElementById('dashboardNavLink');
+                const logoutLink       = document.getElementById('logoutNavLink');
+                const navRoleText      = document.getElementById('navRoleText');
+                const adminSales       = document.getElementById('adminSalesLink');
+                const adminCategories  = document.getElementById('adminCategoriesLink');
+                const adminAudit       = document.getElementById('adminAuditLink');
+                const cashierSales     = document.getElementById('cashierSalesLink');
+
+                const onLoginPage = window.location.pathname === '/login';
+
+                if (who && who.authenticated && !onLoginPage) {
+                    if (loginLink)    loginLink.style.display = 'none';
+                    if (authNavLinks) authNavLinks.style.display = 'inline-flex';
+                    if (logoutLink)   logoutLink.style.display = 'inline-flex';
+
+                    const role = who.user.role;
+
+                    if (dashboardLink) {
+                        dashboardLink.style.display = 'inline-flex';
+                        dashboardLink.href = role === 'owner'
+                            ? '/admin/dashboard'
+                            : '/cashier/dashboard';
+                    }
+                    if (navRoleText) {
+                        navRoleText.textContent =
+                            role === 'owner' ? 'Admin' : 'Cashier';
+                    }
+                    if (adminSales) {
+                        adminSales.style.display =
+                            role === 'owner' ? 'inline-flex' : 'none';
+                    }
+                    if (adminCategories) {
+                        adminCategories.style.display =
+                            role === 'owner' ? 'inline-flex' : 'none';
+                    }
+                    if (adminAudit) {
+                        adminAudit.style.display =
+                            role === 'owner' ? 'inline-flex' : 'none';
+                    }
+                    if (cashierSales) {
+                        cashierSales.style.display =
+                            role === 'cashier' ? 'inline-flex' : 'none';
+                    }
+                } else {
+                    if (loginLink)         loginLink.style.display = 'inline-flex';
+                    if (authNavLinks)      authNavLinks.style.display = 'none';
+                    if (dashboardLink)     dashboardLink.style.display = 'none';
+                    if (logoutLink)        logoutLink.style.display = 'none';
+                    if (adminSales)        adminSales.style.display = 'none';
+                    if (adminCategories)   adminCategories.style.display = 'none';
+                    if (adminAudit)        adminAudit.style.display = 'none';
+                    if (cashierSales)      cashierSales.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', refreshAuthNav);
+            window.refreshAuthNav = refreshAuthNav;
+        })();
+    </script>
+
+    <script>
+        window.loadStoreInfo = async function () {
+            try {
+                const r = await fetch('/api/v1/settings/public-no-auth', {
+                    credentials: 'same-origin'
+                });
+                if (!r.ok) return;
+                const data = await r.json();
+                if (!data || !data.success) return;
+
+                const s = data.data;
+
+                const navName = document.getElementById('navStoreName');
+                if (navName) navName.textContent = `🏪 ${s.store_name || 'Store'}`;
+
+                const footName = document.getElementById('footerStoreName');
+                if (footName) footName.textContent = `🏪 ${s.store_name || 'Store'}`;
+
+                if (s.store_address !== undefined) {
+                    const el = document.getElementById('footerAddress');
+                    if (el) el.textContent = s.store_address || '—';
+                }
+                if (s.store_phone !== undefined) {
+                    const el = document.getElementById('footerPhone');
+                    if (el) el.textContent = s.store_phone || '—';
+                }
+                if (s.store_email !== undefined) {
+                    const el = document.getElementById('footerEmail');
+                    if (el) el.textContent = s.store_email || '—';
+                }
+
+                const cop = document.getElementById('footerCopyrightName');
+                if (cop) cop.textContent = s.store_name || 'Store';
+
+                window.__STORE_INFO__ = s;
+            } catch (e) {
+                console.warn('[store-info]', e);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            window.loadStoreInfo();
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

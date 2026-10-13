@@ -1,4 +1,3 @@
-
 #Login window
 
 import tkinter as tk
@@ -281,28 +280,12 @@ class LoginWindow(tk.Frame):
         footer_inner = tk.Frame(footer, bg='#f8f9fa')
         footer_inner.pack(pady=14)
 
-        tk.Label(footer_inner, text="Demo login:",
-                 font=('Segoe UI', 8),
-                 bg='#f8f9fa', fg=self.TEXT_HINT
-                 ).pack(side=tk.LEFT, padx=(0, 8))
-
-        owner_link = tk.Label(footer_inner, text="Owner",
-                              font=('Segoe UI', 8, 'underline'),
-                              bg='#f8f9fa', fg=self.ACCENT,
-                              cursor='hand2')
-        owner_link.pack(side=tk.LEFT)
-        owner_link.bind('<Button-1>', lambda e: self.quick_fill('owner'))
-
-        tk.Label(footer_inner, text="•",
-                 font=('Segoe UI', 8),
-                 bg='#f8f9fa', fg='#dee2e6').pack(side=tk.LEFT, padx=8)
-
-        cashier_link = tk.Label(footer_inner, text="Cashier",
-                                font=('Segoe UI', 8, 'underline'),
-                                bg='#f8f9fa', fg='#e76f51',
-                                cursor='hand2')
-        cashier_link.pack(side=tk.LEFT)
-        cashier_link.bind('<Button-1>', lambda e: self.quick_fill('cashier'))
+        tk.Label(
+            footer_inner,
+            text="Forgot your password? Contact your store administrator.",
+            font=('Segoe UI', 8),
+            bg='#f8f9fa', fg=self.TEXT_HINT,
+        ).pack()
 
         # ── KEYBOARD BINDINGS ──
         self.username_entry.bind('<Return>',
@@ -356,7 +339,6 @@ class LoginWindow(tk.Frame):
     # ROLE VISUALS
     # ══════════════
     def _update_role_visuals(self):
-        
         try:
             if self._role_var.get() == 'owner':
                 self.owner_btn.config(bg=self.ACCENT, fg='white',
@@ -445,41 +427,6 @@ class LoginWindow(tk.Frame):
             self.password_entry.config(show='')
             self.toggle_btn.config(text="🙈")
             self._password_visible = True
-
-    def quick_fill(self, role):
-        #Fill form with the demo credentials for the given role
-        if not self._alive():
-            return
-        try:
-            if role == 'owner':
-                self.username_entry.delete(0, tk.END)
-                self.username_entry.insert(0, 'admin')
-                self.password_entry.delete(0, tk.END)
-                self.password_entry.insert(0, 'admin123')
-                self._role_var.set('owner')
-            else:
-                self.username_entry.delete(0, tk.END)
-                self.username_entry.insert(0, 'cashier')
-                self.password_entry.delete(0, tk.END)
-                self.password_entry.insert(0, 'cashier123')
-                self._role_var.set('cashier')
-
-            self._update_role_visuals()
-            self.status_label.config(
-                text=f"✓ Filled demo {role} credentials — click Sign In",
-                fg=self.SUCCESS,
-            )
-            self.after(2200, self._clear_status_if_alive)
-        except Exception:
-            pass
-
-    def _clear_status_if_alive(self):
-        if not self._alive():
-            return
-        try:
-            self.status_label.config(text="")
-        except Exception:
-            pass
 
     # ═══════
     # LOGIN

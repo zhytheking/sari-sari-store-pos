@@ -134,7 +134,12 @@ const API = {
         changePassword: (o, n) => API.post(
             '/auth/change-password',
             { old_password: o, new_password: n }
-        )
+        ),
+        listUsers: (params = {}) => {
+            const p = Object.assign({ per_page: 200 }, params);
+            const q = new URLSearchParams(p).toString();
+            return API.get(`/auth/users${q ? '?' + q : ''}`);
+        }
     },
 
     products: {
@@ -223,7 +228,16 @@ const API = {
                     credentials: 'same-origin',
                     headers: h,
                     body: formData
-                }).then(r => r.json());
+                }).then(function (r) {
+                    return r.json().then(function (body) {
+                        if (!r.ok) {
+                            throw new Error(
+                                (body && body.message) || ('HTTP ' + r.status)
+                            );
+                        }
+                        return body;
+                    });
+                });
             },
             getGcashQr: () => API.get('/admin/settings/gcash-qr'),
             removeGcashQr: () => API.delete('/admin/settings/gcash-qr')

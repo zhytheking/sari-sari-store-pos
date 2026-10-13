@@ -2,6 +2,10 @@
  * settings.js — Settings page for owners.
  *
  * Depends on api-client.js.
+ *
+ * All API calls go through `API.*` helpers so URLs stay in sync
+ * with the backend. No raw fetch() calls — this avoids the URL
+ * mismatch bug that caused the QR 404s.
  */
 
 let _setUsers = [];
@@ -68,6 +72,10 @@ function updateSettings(event) {
             hideLoading();
             if (data && data.success) {
                 showToast('Settings saved successfully!', 'success');
+
+                // Reload store info so the navbar and footer update
+                // immediately. Without this, users must refresh the
+                // page to see the new store name.
                 if (typeof window.loadStoreInfo === 'function') {
                     window.loadStoreInfo();
                 }
@@ -124,38 +132,36 @@ function loadUsers() {
    ============================================ */
 
 function loadGcashQr() {
-    fetch('/api/v1/admin/settings/gcash-qr', {
-        credentials: 'same-origin'
-    })
-    .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-    })
-    .then(function (data) {
-        const preview = document.getElementById('gcashQrPreview');
-        if (!preview) return;
+    API.admin.settings.getGcashQr()
+        .then(function (data) {
+            const preview = document.getElementById('gcashQrPreview');
+            if (!preview) return;
 
-        if (data && data.success && data.data && data.data.qr_image_url) {
-            preview.innerHTML =
-                '<img src="' + escapeHtml(data.data.qr_image_url) +
-                '" alt="GCash QR Code">' +
-                '<p class="qr-placeholder-text" style="margin-top:10px;color:#198754;">' +
-                '<i class="fas fa-check-circle"></i> QR code uploaded</p>';
-        } else {
-            preview.innerHTML =
-                '<i class="fas fa-qrcode qr-placeholder-icon"></i>' +
-                '<p class="qr-placeholder-text">No QR uploaded</p>';
-        }
-    })
-    .catch(function (err) {
-        console.error('[settings] QR load:', err);
-        const preview = document.getElementById('gcashQrPreview');
-        if (preview) {
-            preview.innerHTML =
-                '<i class="fas fa-qrcode qr-placeholder-icon"></i>' +
-                '<p class="qr-placeholder-text">No QR uploaded</p>';
-        }
-    });
+            const qrUrl = (data && data.success && data.data)
+                ? (data.data.qr_image_url || data.data.image_url)
+                : null;
+
+            if (qrUrl) {
+                preview.innerHTML =
+                    '<img src="' + escapeHtml(qrUrl) +
+                    '" alt="GCash QR Code">' +
+                    '<p class="qr-placeholder-text" style="margin-top:10px;color:#198754;">' +
+                    '<i class="fas fa-check-circle"></i> QR code uploaded</p>';
+            } else {
+                preview.innerHTML =
+                    '<i class="fas fa-qrcode qr-placeholder-icon"></i>' +
+                    '<p class="qr-placeholder-text">No QR uploaded</p>';
+            }
+        })
+        .catch(function (err) {
+            console.error('[settings] QR load:', err);
+            const preview = document.getElementById('gcashQrPreview');
+            if (preview) {
+                preview.innerHTML =
+                    '<i class="fas fa-qrcode qr-placeholder-icon"></i>' +
+                    '<p class="qr-placeholder-text">No QR uploaded</p>';
+            }
+        });
 }
 
 function onQrFileChange(input) {
@@ -204,7 +210,9 @@ function uploadGcashQr() {
     }
 
     const formData = new FormData();
-    formData.append('qr_image', _setSelectedQrFile);
+    // Backend's upload handler reads `request.files.get('image')`
+    // first, falling back to 'qr_image'. Use 'image' for clarity.
+    formData.append('image', _setSelectedQrFile);
 
     const uploadBtn = document.getElementById('uploadQrBtn');
     if (uploadBtn) {
@@ -214,50 +222,35 @@ function uploadGcashQr() {
 
     showLoading('Uploading QR code...');
 
-    fetch('/api/v1/admin/settings/gcash-qr', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'X-CSRF-TOKEN': getCsrfToken() || '' },
-        body: formData
-    })
-    .then(function (r) {
-        if (!r.ok) {
-            return r.json().then(function (body) {
-                throw new Error((body && body.message) || ('HTTP ' + r.status));
-            }).catch(function () {
-                throw new Error('HTTP ' + r.status);
-            });
-        }
-        return r.json();
-    })
-    .then(function (data) {
-        hideLoading();
-        if (uploadBtn) {
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload QR';
-        }
-        if (data && data.success) {
-            showToast('✅ GCash QR uploaded successfully!', 'success');
-            const fileInput = document.getElementById('gcashQrFile');
-            if (fileInput) fileInput.value = '';
-            const fn = document.getElementById('gcashQrFilename');
-            if (fn) fn.textContent = '';
-            _setSelectedQrFile = null;
-            if (uploadBtn) uploadBtn.disabled = true;
-            loadGcashQr();
-        } else {
-            showToast((data && data.message) || 'Upload failed', 'error');
-        }
-    })
-    .catch(function (err) {
-        hideLoading();
-        if (uploadBtn) {
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload QR';
-        }
-        console.error('[settings] QR upload:', err);
-        showToast('Upload failed: ' + err.message, 'error');
-    });
+    API.admin.settings.uploadGcashQr(formData)
+        .then(function (data) {
+            hideLoading();
+            if (uploadBtn) {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload QR';
+            }
+            if (data && data.success) {
+                showToast('✅ GCash QR uploaded successfully!', 'success');
+                const fileInput = document.getElementById('gcashQrFile');
+                if (fileInput) fileInput.value = '';
+                const fn = document.getElementById('gcashQrFilename');
+                if (fn) fn.textContent = '';
+                _setSelectedQrFile = null;
+                if (uploadBtn) uploadBtn.disabled = true;
+                loadGcashQr();
+            } else {
+                showToast((data && data.message) || 'Upload failed', 'error');
+            }
+        })
+        .catch(function (err) {
+            hideLoading();
+            if (uploadBtn) {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload QR';
+            }
+            console.error('[settings] QR upload:', err);
+            showToast('Upload failed: ' + (err.message || err), 'error');
+        });
 }
 
 function removeGcashQr() {
@@ -265,35 +258,21 @@ function removeGcashQr() {
 
     showLoading('Removing QR code...');
 
-    fetch('/api/v1/admin/settings/gcash-qr', {
-        method: 'DELETE',
-        credentials: 'same-origin',
-        headers: { 'X-CSRF-TOKEN': getCsrfToken() || '' }
-    })
-    .then(function (r) {
-        if (!r.ok) {
-            return r.json().then(function (body) {
-                throw new Error((body && body.message) || ('HTTP ' + r.status));
-            }).catch(function () {
-                throw new Error('HTTP ' + r.status);
-            });
-        }
-        return r.json();
-    })
-    .then(function (data) {
-        hideLoading();
-        if (data && data.success) {
-            showToast('GCash QR removed', 'success');
-            loadGcashQr();
-        } else {
-            showToast((data && data.message) || 'Remove failed', 'error');
-        }
-    })
-    .catch(function (err) {
-        hideLoading();
-        console.error('[settings] QR remove:', err);
-        showToast('Remove failed: ' + err.message, 'error');
-    });
+    API.admin.settings.removeGcashQr()
+        .then(function (data) {
+            hideLoading();
+            if (data && data.success) {
+                showToast('GCash QR removed', 'success');
+                loadGcashQr();
+            } else {
+                showToast((data && data.message) || 'Remove failed', 'error');
+            }
+        })
+        .catch(function (err) {
+            hideLoading();
+            console.error('[settings] QR remove:', err);
+            showToast('Remove failed: ' + (err.message || err), 'error');
+        });
 }
 
 
@@ -358,39 +337,27 @@ function changeOwnPassword(event) {
 
     showLoading('Changing password...');
 
-    fetch('/api/v1/admin/profile/change-password', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken() || ''
-        },
-        body: JSON.stringify({
-            old_password: oldPassword,
-            new_password: newPassword
+    API.admin.profile.changePassword(oldPassword, newPassword)
+        .then(function (data) {
+            hideLoading();
+            if (data && data.success) {
+                showToast('Password changed successfully!', 'success');
+                const form = document.getElementById('changeOwnPasswordForm');
+                if (form) form.reset();
+                ['ownLength', 'ownUppercase', 'ownLowercase', 'ownNumber', 'ownMatch']
+                    .forEach(function (id) {
+                        const el = document.getElementById(id);
+                        if (el) el.className = '';
+                    });
+            } else {
+                showToast((data && data.message) || 'Failed to change password', 'error');
+            }
         })
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-        hideLoading();
-        if (data && data.success) {
-            showToast('Password changed successfully!', 'success');
-            const form = document.getElementById('changeOwnPasswordForm');
-            if (form) form.reset();
-            ['ownLength', 'ownUppercase', 'ownLowercase', 'ownNumber', 'ownMatch']
-                .forEach(function (id) {
-                    const el = document.getElementById(id);
-                    if (el) el.className = '';
-                });
-        } else {
-            showToast((data && data.message) || 'Failed to change password', 'error');
-        }
-    })
-    .catch(function (err) {
-        hideLoading();
-        console.error('[settings] own password:', err);
-        showToast('Failed to change password', 'error');
-    });
+        .catch(function (err) {
+            hideLoading();
+            console.error('[settings] own password:', err);
+            showToast('Failed to change password', 'error');
+        });
 }
 
 
@@ -433,34 +400,25 @@ function changeUserPassword(event) {
 
     showLoading('Resetting password...');
 
-    fetch('/api/v1/admin/users/' + userId + '/change-password', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken() || ''
-        },
-        body: JSON.stringify({ new_password: newPassword })
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-        hideLoading();
-        if (data && data.success) {
-            showToast(data.message, 'success');
-            const form = document.getElementById('changeUserPasswordForm');
-            if (form) form.reset();
-            ['userLength', 'userUppercase', 'userLowercase', 'userNumber', 'userMatch']
-                .forEach(function (id) {
-                    const el = document.getElementById(id);
-                    if (el) el.className = '';
-                });
-        } else {
-            showToast((data && data.message) || 'Failed to reset password', 'error');
-        }
-    })
-    .catch(function (err) {
-        hideLoading();
-        console.error('[settings] user password:', err);
-        showToast('Failed to reset password', 'error');
-    });
+    API.admin.users.changePassword(parseInt(userId, 10), newPassword)
+        .then(function (data) {
+            hideLoading();
+            if (data && data.success) {
+                showToast(data.message || 'Password reset successfully', 'success');
+                const form = document.getElementById('changeUserPasswordForm');
+                if (form) form.reset();
+                ['userLength', 'userUppercase', 'userLowercase', 'userNumber', 'userMatch']
+                    .forEach(function (id) {
+                        const el = document.getElementById(id);
+                        if (el) el.className = '';
+                    });
+            } else {
+                showToast((data && data.message) || 'Failed to reset password', 'error');
+            }
+        })
+        .catch(function (err) {
+            hideLoading();
+            console.error('[settings] user password:', err);
+            showToast('Failed to reset password', 'error');
+        });
 }
